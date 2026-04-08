@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+     <menuitem id="menu_finance_reconcilation" name="Reconcile"
+              parent="account.menu_finance_entries" sequence="2">
+
+         <menuitem id="menu_action_reconcile"
+                  name="Reconcile"
+                  action="action_move_line_posted_unreconciled"
+                  groups="account.group_account_readonly" sequence="3"/>
+
+     </menuitem>
+</odoo>
