@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="spa_wellness.SpaTherapists">
+        <div class="smp-page">
+
+            <!-- HEADER -->
+            <div class="smp-header">
+                <button class="smp-back-btn" t-on-click="goBack">← Back</button>
+                <div class="smp-title-wrap">
+                    <span class="smp-icon">💆</span>
+                    <h2 class="smp-title">Therapists</h2>
+                </div>
+                 <button class="btn btn-primary" t-on-click="openBookingPanel">
+                    + New Booking
+                </button>
+                <span class="smp-subtitle">
+                    Check therapist availability
+                </span>
+            </div>
+
+            <!-- LOADING -->
+            <div t-if="state.loading" class="smp-loading">
+                <i class="fa fa-spinner fa-spin fa-2x"/>
+                <span>Loading therapists…</span>
+            </div>
+
+            <!-- GRID -->
+            <div t-if="!state.loading" class="smp-grid">
+
+                <t t-foreach="state.therapists" t-as="th" t-key="th.id">
+
+                    <div class="smp-card">
+
+                        <div class="smp-card-header">
+                            <div class="smp-plan-icon">💆</div>
+                            <div class="smp-plan-name" t-esc="th.name"/>
+                        </div>
+
+                        <div t-if="th.mobile" class="smp-note">
+                            📱 <t t-esc="th.mobile"/>
+                        </div>
+                        <div t-if="th.email" class="smp-note">
+                            ✉ <t t-esc="th.email"/>
+                        </div>
+                        <div class="smp-divider"/>
+<!--                        <div class="smp-card-footer"-->
+<!--                             t-on-click="() => this.openAvailability(th)">-->
+<!--                            View Availability →-->
+<!--                        </div>-->
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

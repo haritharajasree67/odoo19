@@ -1,0 +1,1037 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="InventoryForecastDashboard">
+<div class="o_inventory_dashboard container-fluid p-4">
+
+    <!-- ── Header ── -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="mb-0">📦 StockPulse: Forecast Alerts</h1>
+            <small class="text-muted">Demand analysis · Auto purchase suggestions · Dead stock detection · Seasonal forecasting · Product analytics · Manufacturing</small>
+        </div>
+    </div>
+
+    <!-- ── Tabs ── -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link" t-att-class="state.activeTab === 'chart' ? 'active fw-bold' : ''"
+               t-on-click="() => this.setTab('chart')" href="#" style="cursor:pointer;">
+                📊 Demand Chart
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" t-att-class="state.activeTab === 'suggest' ? 'active fw-bold' : ''"
+               t-on-click="() => this.setTab('suggest')" href="#" style="cursor:pointer;">
+                🛒 Purchase Suggestions
+                <t t-if="state.suggestions.length">
+                    <span class="badge bg-danger ms-1"><t t-esc="state.suggestions.length"/></span>
+                </t>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" t-att-class="state.activeTab === 'deadstock' ? 'active fw-bold' : ''"
+               t-on-click="() => this.setTab('deadstock')" href="#" style="cursor:pointer;">
+                🪦 Dead Stock
+                <t t-if="state.deadStock.length">
+                    <span class="badge bg-secondary ms-1"><t t-esc="state.deadStock.length"/></span>
+                </t>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" t-att-class="state.activeTab === 'seasonal' ? 'active fw-bold' : ''"
+               t-on-click="() => this.setTab('seasonal')" href="#" style="cursor:pointer;">
+                🌦️ Seasonal Forecast
+                <t t-if="seasonalSpikes">
+                    <span class="badge bg-warning text-dark ms-1"><t t-esc="seasonalSpikes"/> spike(s)</span>
+                </t>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" t-att-class="state.activeTab === 'analytics' ? 'active fw-bold' : ''"
+               t-on-click="() => this.setTab('analytics')" href="#" style="cursor:pointer;">
+                📈 Product Analytics
+                <t t-if="state.analyticsData.length">
+                    <span class="badge bg-info text-dark ms-1"><t t-esc="state.analyticsData.length"/></span>
+                </t>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" t-att-class="state.activeTab === 'mfg' ? 'active fw-bold' : ''"
+               t-on-click="() => this.setTab('mfg')" href="#" style="cursor:pointer;">
+                🏭 Manufacturing
+                <t t-if="mfgTotalShortages">
+                    <span class="badge bg-danger ms-1"><t t-esc="mfgTotalShortages"/></span>
+                </t>
+            </a>
+        </li>
+    </ul>
+
+    <!-- ══════════════════════════════════════════════
+         TAB 1 — DEMAND CHART
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.activeTab === 'chart'">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small text-muted mb-1">📅 Date From</label>
+                        <input type="date" class="form-control form-control-sm" style="min-width:150px;"
+                            t-att-value="state.chartDateFrom" t-on-change="onChartDateFrom"/>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small text-muted mb-1">📅 Date To</label>
+                        <input type="date" class="form-control form-control-sm" style="min-width:150px;"
+                            t-att-value="state.chartDateTo" t-on-change="onChartDateTo"/>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small text-muted mb-1">🔢 Show Top</label>
+                        <select class="form-select form-select-sm" style="min-width:110px;"
+                                t-att-value="state.chartTopN" t-on-change="onChartTopNChange">
+                            <option value="5">Top 5</option>
+                            <option value="6">Top 6</option>
+                            <option value="10">Top 10</option>
+                            <option value="15">Top 15</option>
+                        </select>
+                    </div>
+                    <div class="col-auto d-flex gap-2">
+                        <button class="btn btn-primary btn-sm px-4" t-on-click="applyChartFilters">🔍 Apply</button>
+                        <button class="btn btn-outline-secondary btn-sm" t-on-click="resetChartFilters">↺ Reset</button>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <t t-if="state.chartDateFrom or state.chartDateTo">
+                            📅 Showing: <strong><t t-esc="state.chartDateFrom or 'All time'"/></strong> → <strong><t t-esc="state.chartDateTo or 'Today'"/></strong>
+                        </t>
+                        <t t-else="">📅 No date filter — showing <strong>all time</strong> data.</t>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <t t-if="state.loading">
+            <div class="d-flex justify-content-center align-items-center" style="height:400px;">
+                <div class="spinner-border text-primary" role="status"/>
+            </div>
+        </t>
+        <t t-else="">
+            <t t-if="!state.topProducts.length">
+                <div class="alert alert-secondary text-center p-5">
+                    <h5>📭 No sales data found for the selected filters.</h5>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="card shadow-sm" style="max-width:800px; margin:auto;">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0">
+                            📊 Top <t t-esc="state.chartTopN"/> Products
+                            <span class="text-muted fw-normal small ms-2">
+                                (<t t-esc="state.chartDateFrom or 'All time'"/> → <t t-esc="state.chartDateTo or 'Today'"/>)
+                            </span>
+                        </h5>
+                        <button class="btn btn-sm btn-success" t-on-click="downloadChartData">⬇️ Download XLSX</button>
+                    </div>
+                    <div class="card-body">
+                        <div style="position:relative; height:460px; width:100%;"><canvas t-ref="chartCanvas"/></div>
+                    </div>
+                    <div class="card-footer p-0">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr><th class="ps-3">Product</th><th class="text-end pe-3">Qty Sold</th><th class="text-end pe-3">Share</th></tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="totalQty" t-value="state.topProducts.reduce((s,p) => s + p.qty, 0)"/>
+                                <t t-foreach="state.topProducts" t-as="p" t-key="p.id">
+                                    <tr>
+                                        <td class="ps-3 fw-semibold small"><t t-esc="p.name"/></td>
+                                        <td class="text-end pe-3 small"><t t-esc="p.qty.toLocaleString()"/></td>
+                                        <td class="text-end pe-3 small text-muted"><t t-esc="totalQty > 0 ? (p.qty / totalQty * 100).toFixed(1) : 0"/>%</td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <!-- ══════════════════════════════════════════════
+         TAB 2 — PURCHASE SUGGESTIONS
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.activeTab === 'suggest'">
+        <t t-if="state.suggestionLoading">
+            <div class="d-flex justify-content-center align-items-center" style="height:300px;"><div class="spinner-border text-warning" role="status"/></div>
+        </t>
+        <t t-else="">
+            <t t-if="state.autoPoLoading">
+                <div class="alert alert-info d-flex align-items-center gap-3 mb-3 py-2">
+                    <div class="spinner-border spinner-border-sm text-info" role="status"/>
+                    <span>⚡ Auto-creating draft Purchase Orders…</span>
+                </div>
+            </t>
+            <t t-if="!state.autoPoLoading and state.autoPOs.length">
+                <div class="alert alert-success d-flex align-items-center justify-content-between mb-3 py-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="font-size:1.4rem;">🛒</span>
+                        <div><strong><t t-esc="state.autoPOs.length"/> Draft PO(s) ready.</strong><span class="text-muted ms-2 small">Existing drafts are reused — no duplicates on refresh.</span></div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <t t-foreach="state.autoPOs" t-as="apo" t-key="apo.poId">
+                            <a t-att-href="'/web#model=purchase.order&amp;id=' + apo.poId + '&amp;view_type=form'" target="_blank"
+                               t-att-class="apo.reused ? 'btn btn-sm btn-outline-secondary' : 'btn btn-sm btn-outline-success'">
+                                🛒 <t t-esc="apo.poName"/>
+                                <span class="badge ms-1 small" t-att-class="apo.reused ? 'bg-secondary' : 'bg-success'">
+                                    <t t-if="apo.reused">existing</t><t t-else="">new</t>
+                                </span>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </t>
+            <t t-if="state.poCreated">
+                <div class="alert alert-success d-flex align-items-center justify-content-between mb-4">
+                    <span>✅ Purchase Order <strong t-esc="state.poName"/> created successfully!</span>
+                    <button class="btn btn-sm btn-success" t-on-click="openPO">Open PO →</button>
+                </div>
+            </t>
+            <t t-if="!state.suggestions.length">
+                <div class="alert alert-success text-center p-5"><h4>✅ All Good!</h4><p class="mb-0">Stock levels are healthy.</p></div>
+            </t>
+            <t t-else="">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4"><div class="card border-danger text-center p-3"><div class="fs-1 fw-bold text-danger"><t t-esc="state.suggestions.filter(s => s.status === 'critical').length"/></div><div class="text-muted">Out of Stock</div></div></div>
+                    <div class="col-md-4"><div class="card border-warning text-center p-3"><div class="fs-1 fw-bold text-warning"><t t-esc="state.suggestions.filter(s => s.status === 'low').length"/></div><div class="text-muted">Low Stock</div></div></div>
+                    <div class="col-md-4"><div class="card border-primary text-center p-3"><div class="fs-1 fw-bold text-primary"><t t-esc="state.suggestions.length"/></div><div class="text-muted">Total Items to Restock</div></div></div>
+                </div>
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="mb-0">🛒 Suggested Purchase List (last 2 months demand)</h5>
+                            <t t-if="someSelected"><span class="badge bg-primary ms-2"><t t-esc="selectedCount"/> selected</span></t>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-success" t-on-click="downloadSuggestions">⬇️ Download XLSX</button>
+                            <t t-if="!state.poCreated">
+                                <button class="btn btn-outline-secondary btn-sm" t-on-click="toggleSelectAll">
+                                    <t t-if="allSelected">☑ Deselect All</t><t t-else="">☐ Select All</t>
+                                </button>
+                                <button class="btn btn-primary btn-sm" t-att-disabled="!someSelected"
+                                    t-att-class="someSelected ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'"
+                                    t-on-click="createPurchaseOrder">
+                                    ⚡ Create PO for Selected (<t t-esc="selectedCount"/>)
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+                    <t t-if="!state.poCreated">
+                        <div class="px-3 py-2 bg-light border-bottom text-muted small">
+                            ☑ Tick checkboxes to build a custom PO, <strong>or</strong> click the <strong>🛒 cart icon</strong> to open its auto-created draft PO.
+                        </div>
+                    </t>
+                    <div class="card-body p-0">
+                        <table class="table table-hover table-bordered mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <t t-if="!state.poCreated"><th class="text-center" style="width:48px;"><input type="checkbox" class="form-check-input" t-att-checked="allSelected" t-on-change="toggleSelectAll"/></th></t>
+                                    <th>Product</th><th class="text-center">Sold (2M)</th><th class="text-center">Avg/Month</th>
+                                    <th class="text-center">Current Stock</th><th class="text-center">Suggest to Buy</th>
+                                    <th>Vendor</th><th class="text-center">Status</th><th class="text-center" style="width:100px;">Draft PO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.suggestions" t-as="s" t-key="s.productId">
+                                    <tr t-att-class="isSelected(s.productId) ? 'table-primary' : ''">
+                                        <t t-if="!state.poCreated">
+                                            <td class="text-center align-middle"><input type="checkbox" class="form-check-input" t-att-checked="isSelected(s.productId)" t-on-change="() => this.toggleProduct(s.productId)"/></td>
+                                        </t>
+                                        <td class="fw-semibold align-middle"><t t-esc="s.productName"/></td>
+                                        <td class="text-center align-middle"><t t-esc="s.soldLast2Months"/> <small class="text-muted"><t t-esc="s.uom"/></small></td>
+                                        <td class="text-center align-middle"><t t-esc="s.monthlyAvgDemand"/> <small class="text-muted"><t t-esc="s.uom"/></small></td>
+                                        <td class="text-center align-middle" t-att-class="s.status === 'critical' ? 'text-danger fw-bold' : 'text-warning fw-bold'">
+                                            <t t-esc="s.currentStock"/> <small><t t-esc="s.uom"/></small>
+                                        </td>
+                                        <td class="text-center align-middle text-primary fw-bold"><t t-esc="s.suggestQty"/> <small class="text-muted"><t t-esc="s.uom"/></small></td>
+                                        <td class="align-middle">
+                                            <t t-if="s.vendorId"><span class="badge bg-secondary"><t t-esc="s.vendorName"/></span></t>
+                                            <t t-else=""><span class="badge bg-light text-muted">No vendor</span></t>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <t t-if="s.status === 'critical'"><span class="badge bg-danger">🔴 Out of Stock</span></t>
+                                            <t t-else=""><span class="badge bg-warning text-dark">🟡 Low Stock</span></t>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <t t-set="rowPo" t-value="getProductPO(s.productId)"/>
+                                            <t t-if="state.autoPoLoading and !rowPo"><span class="spinner-border spinner-border-sm text-secondary" role="status"/></t>
+                                            <t t-elif="rowPo">
+                                                <button t-att-class="rowPo.manual ? 'btn btn-sm btn-success px-2 py-1' : 'btn btn-sm btn-outline-primary px-2 py-1'"
+                                                    t-att-title="'Open PO: ' + rowPo.poName" t-on-click="() => this.openAutoPO(s.productId)" style="font-size:1.1rem; line-height:1;">
+                                                    🛒 <span class="badge ms-1" t-att-class="rowPo.manual ? 'bg-white text-success' : 'bg-primary'" style="font-size:0.65rem;"><t t-esc="rowPo.poName"/></span>
+                                                </button>
+                                            </t>
+                                            <t t-else=""><span class="text-muted small">—</span></t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-muted small">💡 Draft POs auto-created on load (one per vendor, never duplicated). Restock qty = 2× avg demand − current stock.</div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <!-- ══════════════════════════════════════════════
+         TAB 3 — DEAD STOCK
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.activeTab === 'deadstock'">
+        <t t-if="state.deadStockLoading">
+            <div class="d-flex justify-content-center align-items-center" style="height:300px;"><div class="spinner-border text-secondary" role="status"/></div>
+        </t>
+        <t t-else="">
+            <t t-if="!state.deadStock.length">
+                <div class="alert alert-success text-center p-5"><h4>✅ No Dead Stock Found!</h4><p class="mb-0">All stocked products had sales in the last 12 months.</p></div>
+            </t>
+            <t t-else="">
+                <div class="alert alert-warning d-flex align-items-center gap-3 mb-4">
+                    <span style="font-size:2rem;">🪦</span>
+                    <div><strong>Dead Stock Alert!</strong> Found <strong t-esc="state.deadStock.length"/> products with stock but <strong>zero sales in last 12 months</strong>. Capital tied up: <strong class="text-danger"><t t-esc="totalDeadStockValue"/></strong></div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3"><div class="card border-danger text-center p-3"><div class="fs-1 fw-bold text-danger"><t t-esc="deadStockBySeverity.high"/></div><div class="text-muted small">High Value (&gt;1000)</div></div></div>
+                    <div class="col-md-3"><div class="card border-warning text-center p-3"><div class="fs-1 fw-bold text-warning"><t t-esc="deadStockBySeverity.medium"/></div><div class="text-muted small">Medium (200–1000)</div></div></div>
+                    <div class="col-md-3"><div class="card border-secondary text-center p-3"><div class="fs-1 fw-bold text-secondary"><t t-esc="deadStockBySeverity.low"/></div><div class="text-muted small">Low Value (&lt;200)</div></div></div>
+                    <div class="col-md-3"><div class="card bg-dark text-white text-center p-3"><div class="fs-3 fw-bold"><t t-esc="totalDeadStockValue"/></div><div class="small opacity-75">Total Dead Stock Value</div></div></div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0">🪦 Dead Stock Items</h5>
+                        <button class="btn btn-sm btn-success" t-on-click="downloadDeadStock">⬇️ Download XLSX</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover table-bordered mb-0">
+                            <thead class="table-dark">
+                                <tr><th>Product</th><th>Category</th><th class="text-center">Stock Qty</th><th class="text-center">Sale Price</th><th class="text-center">Cost Price</th><th class="text-center">Stock Value</th><th class="text-center">Severity</th><th class="text-center">Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.deadStock" t-as="d" t-key="d.productId">
+                                    <tr t-att-class="d.severity === 'high' ? 'table-danger' : d.severity === 'medium' ? 'table-warning' : ''">
+                                        <td class="fw-semibold"><t t-esc="d.productName"/></td>
+                                        <td><span class="badge bg-light text-dark border"><t t-esc="d.category"/></span></td>
+                                        <td class="text-center"><t t-esc="d.stock"/> <small class="text-muted"><t t-esc="d.uom"/></small></td>
+                                        <td class="text-center"><t t-esc="d.salePrice.toFixed(2)"/></td>
+                                        <td class="text-center"><t t-esc="d.costPrice.toFixed(2)"/></td>
+                                        <td class="text-center fw-bold"><t t-esc="d.stockValue"/></td>
+                                        <td class="text-center">
+                                            <t t-if="d.severity === 'high'"><span class="badge bg-danger">🔴 High</span></t>
+                                            <t t-elif="d.severity === 'medium'"><span class="badge bg-warning text-dark">🟡 Medium</span></t>
+                                            <t t-else=""><span class="badge bg-secondary">⚪ Low</span></t>
+                                        </td>
+                                        <td class="text-center"><button class="btn btn-sm btn-outline-primary" t-on-click="() => this.openProduct(d.productId)">View →</button></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <!-- ══════════════════════════════════════════════
+         TAB 4 — SEASONAL FORECAST
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.activeTab === 'seasonal'">
+        <t t-if="state.seasonalLoading">
+            <div class="d-flex justify-content-center align-items-center" style="height:300px;"><div class="spinner-border text-info" role="status"/></div>
+        </t>
+        <t t-else="">
+            <div class="alert alert-info d-flex align-items-start gap-3 mb-4">
+                <span style="font-size:2rem; line-height:1;">🌦️</span>
+                <div>
+                    <strong>How Seasonal Forecasting Works:</strong>
+                    SI = LY Next Month Sales / LY Same Month Sales · Projected = Current × SI · Suggest = max(0, Projected − Stock)<br/>
+                    <strong>⚠️ Extreme Spike Guard:</strong> SI reset to 1.0 if LY Next &gt; 5× average.
+                    <strong>🏷️ Clearance Guard:</strong> Isolated 3× spikes excluded.
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3"><div class="card border-warning text-center p-3"><div class="fs-1 fw-bold text-warning"><t t-esc="seasonalSpikes"/></div><div class="text-muted small">Spikes ⚡</div></div></div>
+                <div class="col-md-3"><div class="card border-success text-center p-3"><div class="fs-1 fw-bold text-success"><t t-esc="seasonalStable"/></div><div class="text-muted small">Stable ✅</div></div></div>
+                <div class="col-md-3"><div class="card border-secondary text-center p-3"><div class="fs-1 fw-bold text-secondary"><t t-esc="seasonalDrops"/></div><div class="text-muted small">Drops 📉</div></div></div>
+                <div class="col-md-3"><div class="card bg-dark text-white text-center p-3"><div class="fs-5 fw-bold"><t t-esc="seasonalNextMonthLabel"/></div><div class="small opacity-75 mt-1">Forecasting For</div></div></div>
+            </div>
+            <t t-if="!state.seasonalData.length">
+                <div class="alert alert-secondary text-center p-5"><h4>📭 Not enough historical data</h4><p class="mb-0">Need 13+ months of confirmed sales history.</p></div>
+            </t>
+            <t t-else="">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0">🌦️ Seasonal Demand Forecast — <t t-esc="seasonalNextMonthLabel"/></h5>
+                        <button class="btn btn-sm btn-success" t-on-click="downloadSeasonalData">⬇️ Download XLSX</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover table-bordered mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Product</th><th class="text-center">Curr Sales</th><th class="text-center">LY Same</th>
+                                    <th class="text-center">LY Next</th><th class="text-center">LY After</th>
+                                    <th class="text-center">SI</th><th class="text-center">Projected</th>
+                                    <th class="text-center">Stock</th><th class="text-center">Suggest</th>
+                                    <th class="text-center">Outlier</th><th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.seasonalData" t-as="s" t-key="s.productId">
+                                    <tr t-att-class="s.status === 'spike' ? 'table-warning' : s.status === 'drop' ? 'table-light' : ''">
+                                        <td class="fw-semibold align-middle"><t t-esc="s.productName"/></td>
+                                        <td class="text-center align-middle"><t t-esc="s.currentSales"/></td>
+                                        <td class="text-center align-middle text-muted"><t t-esc="s.lyCurrentSales"/></td>
+                                        <td class="text-center align-middle text-muted"><t t-esc="s.lyNextSales"/></td>
+                                        <td class="text-center align-middle text-muted"><t t-esc="s.lyAfterNextSales"/></td>
+                                        <td class="text-center align-middle">
+                                            <t t-if="s.isOutlier"><span class="badge bg-secondary">1.00x</span></t>
+                                            <t t-elif="s.status === 'spike'"><span class="badge bg-warning text-dark"><t t-esc="s.seasonalIndex"/>x ▲</span></t>
+                                            <t t-elif="s.status === 'drop'"><span class="badge bg-secondary"><t t-esc="s.seasonalIndex"/>x ▼</span></t>
+                                            <t t-else=""><span class="badge bg-success"><t t-esc="s.seasonalIndex"/>x</span></t>
+                                        </td>
+                                        <td class="text-center align-middle fw-bold text-primary"><t t-esc="s.projectedDemand"/></td>
+                                        <td class="text-center align-middle"><t t-esc="s.currentStock"/></td>
+                                        <td class="text-center align-middle">
+                                            <t t-if="s.suggestOrder > 0"><span class="badge bg-danger">+<t t-esc="s.suggestOrder"/></span></t>
+                                            <t t-else=""><span class="badge bg-success">✓</span></t>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <t t-if="s.isOutlier">
+                                                <t t-if="s.outlierReason === 'Clearance pattern detected'"><span class="badge bg-warning text-dark">🏷️</span></t>
+                                                <t t-else=""><span class="badge bg-danger">⚠️</span></t>
+                                            </t>
+                                            <t t-else=""><span class="badge bg-light text-muted border">—</span></t>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <t t-if="s.status === 'spike'"><span class="badge bg-warning text-dark">⚡ Spike</span></t>
+                                            <t t-elif="s.status === 'drop'"><span class="badge bg-secondary">📉 Drop</span></t>
+                                            <t t-else=""><span class="badge bg-success">✅ Stable</span></t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <!-- ══════════════════════════════════════════════
+         TAB 5 — PRODUCT ANALYTICS
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.activeTab === 'analytics'">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light py-2"><h6 class="mb-0 text-muted fw-semibold">🔍 Filter Options</h6></div>
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold small text-muted mb-1">📦 Product Name</label>
+                        <div class="position-relative">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">🔍</span>
+                                <input type="text" class="form-control" placeholder="Search product name…"
+                                    t-att-value="state.analyticsSearchTerm" t-on-input="onAnalyticsSearchInput"/>
+                                <t t-if="state.analyticsSearchLoading">
+                                    <span class="input-group-text"><div class="spinner-border spinner-border-sm text-primary" role="status"/></span>
+                                </t>
+                                <t t-if="state.analyticsSelectedProduct">
+                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="clearAnalyticsProduct" title="Clear">✕</button>
+                                </t>
+                            </div>
+                            <t t-if="state.analyticsShowDropdown and state.analyticsSearchResults.length">
+                                <div class="position-absolute w-100 border rounded shadow-sm bg-white" style="z-index:1000; max-height:200px; overflow-y:auto; top:100%; left:0;">
+                                    <t t-foreach="state.analyticsSearchResults" t-as="pr" t-key="pr.id">
+                                        <div class="px-3 py-2 border-bottom" style="cursor:pointer;"
+                                             t-att-class="state.analyticsSelectedProduct and state.analyticsSelectedProduct.id === pr.id ? 'bg-primary text-white' : 'bg-white'"
+                                             t-on-click="() => this.selectAnalyticsProduct(pr.id, pr.name)">
+                                            <span class="fw-semibold small"><t t-esc="pr.name"/></span>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                        <t t-if="state.analyticsSelectedProduct">
+                            <small class="text-success mt-1 d-block">✅ Filtering: <strong t-esc="state.analyticsSelectedProduct.name"/></small>
+                        </t>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold small text-muted mb-1">📅 Date From</label>
+                        <input type="date" class="form-control form-control-sm" t-att-value="state.analyticsDateFrom" t-on-change="onAnalyticsDateFrom"/>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold small text-muted mb-1">📅 Date To</label>
+                        <input type="date" class="form-control form-control-sm" t-att-value="state.analyticsDateTo" t-on-change="onAnalyticsDateTo"/>
+                    </div>
+                    <div class="col-auto d-flex gap-2">
+                        <button class="btn btn-primary btn-sm px-4" t-on-click="applyAnalyticsFilters">🔍 Apply</button>
+                        <button class="btn btn-outline-secondary btn-sm" t-on-click="resetAnalyticsFilters">↺ Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <t t-if="state.analyticsLoading">
+            <div class="d-flex justify-content-center align-items-center" style="height:300px;"><div class="spinner-border text-info" role="status"/></div>
+        </t>
+        <t t-else="">
+            <t t-if="!state.analyticsData.length">
+                <div class="alert alert-secondary text-center p-5"><h5>📭 No sales data found</h5><p class="mb-0 text-muted">Try adjusting filters.</p></div>
+            </t>
+            <t t-else="">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-3" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);">
+                            <div class="fs-3 fw-bold text-primary"><t t-esc="analyticsTotals.salesValue"/></div>
+                            <div class="text-muted" style="font-size:0.78rem;">+<t t-esc="analyticsTotalSalesTax"/> tax = <strong><t t-esc="analyticsTotalSalesGross"/></strong></div>
+                            <div class="text-muted small fw-semibold mt-1">Total Sales Revenue</div>
+                            <div class="text-primary small"><t t-esc="analyticsTotals.soldQty"/> units sold</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-3" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);">
+                            <div class="fs-3 fw-bold text-warning"><t t-esc="analyticsTotals.purchaseValue"/></div>
+                            <div class="text-muted" style="font-size:0.78rem;">+<t t-esc="analyticsTotalPurchaseTax"/> tax = <strong><t t-esc="analyticsTotalPurchaseGross"/></strong></div>
+                            <div class="text-muted small fw-semibold mt-1">Total Purchase Value</div>
+                            <div class="text-warning small">All non-cancelled POs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-3" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);">
+                            <div class="fs-3 fw-bold text-success"><t t-esc="analyticsTotals.grossProfit"/></div>
+                            <div class="text-muted small fw-semibold">Gross Profit (Revenue − COGS)</div>
+                            <div class="text-success small">Based on product cost price</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-3" style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);">
+                            <div class="fs-3 fw-bold" style="color:#7b1fa2;"><t t-esc="analyticsTotalMargin"/>%</div>
+                            <div class="text-muted small fw-semibold">Overall Gross Margin</div>
+                            <div class="text-muted small">Profit / Revenue</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-0">📈 Product Sales &amp; Profitability Analysis</h5>
+                            <small class="text-muted">
+                                <t t-if="state.analyticsDateFrom or state.analyticsDateTo">
+                                    <t t-esc="state.analyticsDateFrom or 'All time'"/> → <t t-esc="state.analyticsDateTo or 'Today'"/>
+                                </t>
+                                <t t-else="">All time</t>
+                                <t t-if="state.analyticsSelectedProduct"> · <strong t-esc="state.analyticsSelectedProduct.name"/></t>
+                                · <strong><t t-esc="state.analyticsData.length"/></strong> product(s)
+                            </small>
+                        </div>
+                        <button class="btn btn-sm btn-success" t-on-click="downloadAnalyticsData">⬇️ Download XLSX</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr class="text-center">
+                                        <th class="text-start" rowspan="2" style="vertical-align:middle;">Product</th>
+                                        <th rowspan="2" style="vertical-align:middle;">Sales Qty</th>
+                                        <th colspan="3" class="text-center bg-light border-start border-end" style="border-bottom:2px solid #dee2e6;">Sales Value</th>
+                                        <th rowspan="2" style="vertical-align:middle;">Purchase Qty</th>
+                                        <th colspan="3" class="text-center bg-light border-start border-end" style="border-bottom:2px solid #dee2e6;">Purchase Value</th>
+                                        <th rowspan="2" style="vertical-align:middle;">COGS</th>
+                                        <th rowspan="2" style="vertical-align:middle;">Gross Profit</th>
+                                        <th rowspan="2" style="vertical-align:middle;">Margin</th>
+                                    </tr>
+                                    <tr class="text-center" style="font-size:0.78rem;">
+                                        <th class="text-success border-start">Untaxed</th>
+                                        <th class="text-muted">Tax</th>
+                                        <th class="text-dark border-end">Total</th>
+                                        <th class="text-warning border-start">Untaxed</th>
+                                        <th class="text-muted">Tax</th>
+                                        <th class="text-dark border-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.analyticsData" t-as="r" t-key="r.productId">
+                                        <tr>
+                                            <td class="fw-semibold text-start"><t t-esc="r.productName"/></td>
+                                            <td class="text-center"><t t-esc="r.soldQty"/></td>
+                                            <td class="text-center text-success fw-semibold border-start"><t t-esc="r.salesUntaxed"/></td>
+                                            <td class="text-center text-muted small"><t t-esc="r.salesTax"/></td>
+                                            <td class="text-center fw-bold border-end"><t t-esc="r.salesTotal"/></td>
+                                            <td class="text-center text-muted">
+                                                <t t-if="r.purchaseQty > 0"><t t-esc="r.purchaseQty"/> <small class="text-muted"><t t-esc="r.uom"/></small></t>
+                                                <t t-else="">—</t>
+                                            </td>
+                                            <td class="text-center text-warning fw-semibold border-start">
+                                                <t t-if="r.purchaseUntaxed > 0"><t t-esc="r.purchaseUntaxed"/></t>
+                                                <t t-else=""><span class="text-muted">—</span></t>
+                                            </td>
+                                            <td class="text-center text-muted small">
+                                                <t t-if="r.purchaseTax > 0"><t t-esc="r.purchaseTax"/></t>
+                                                <t t-else=""><span class="text-muted">—</span></t>
+                                            </td>
+                                            <td class="text-center fw-bold border-end">
+                                                <t t-if="r.purchaseTotal > 0"><t t-esc="r.purchaseTotal"/></t>
+                                                <t t-else=""><span class="text-muted">—</span></t>
+                                            </td>
+                                            <td class="text-center text-danger fw-semibold">
+                                                <t t-if="r.cogs > 0"><t t-esc="r.cogs"/></t>
+                                                <t t-else=""><span class="text-muted">—</span></t>
+                                            </td>
+                                            <td class="text-center fw-bold">
+                                                <t t-if="r.grossProfit > 0"><span class="text-success"><t t-esc="r.grossProfit"/></span></t>
+                                                <t t-elif="r.grossProfit &lt; 0"><span class="text-danger"><t t-esc="r.grossProfit"/></span></t>
+                                                <t t-else=""><span class="text-muted">0</span></t>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge fw-semibold"
+                                                      t-att-class="r.grossMargin >= 30 ? 'bg-success' : r.grossMargin >= 15 ? 'bg-warning text-dark' : r.grossMargin >= 0 ? 'bg-secondary' : 'bg-danger'">
+                                                    <t t-esc="r.grossMargin"/>%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot class="table-light fw-semibold">
+                                    <tr class="text-center">
+                                        <td class="text-start">Total</td>
+                                        <td><t t-esc="analyticsTotalSalesQty"/></td>
+                                        <td class="text-success border-start"><t t-esc="analyticsTotalSales"/></td>
+                                        <td class="text-muted small"><t t-esc="analyticsTotalSalesTax"/></td>
+                                        <td class="fw-bold border-end"><t t-esc="analyticsTotalSalesGross"/></td>
+                                        <td><t t-esc="analyticsTotalPurchaseQty"/></td>
+                                        <td class="text-warning border-start"><t t-esc="analyticsTotalPurchase"/></td>
+                                        <td class="text-muted small"><t t-esc="analyticsTotalPurchaseTax"/></td>
+                                        <td class="fw-bold border-end"><t t-esc="analyticsTotalPurchaseGross"/></td>
+                                        <td class="text-danger"><t t-esc="analyticsTotalCOGS"/></td>
+                                        <td><t t-esc="analyticsTotalProfit"/></td>
+                                        <td>
+                                            <span class="badge fw-semibold"
+                                                  t-att-class="analyticsTotalMargin >= 30 ? 'bg-success' : analyticsTotalMargin >= 15 ? 'bg-warning text-dark' : 'bg-secondary'">
+                                                <t t-esc="analyticsTotalMargin"/>%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted small">
+                        💡 <strong>Sales Value</strong>: Untaxed = confirmed sale subtotal · Tax = tax amount · Total = untaxed + tax.
+                        <strong>Purchase Value</strong>: from all non-cancelled PO lines.
+                        <strong>COGS</strong> = Sold Qty × Cost Price.
+                        Margin ≥30% = <span class="badge bg-success">green</span> · ≥15% = <span class="badge bg-warning text-dark">yellow</span>.
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+
+    <!-- ══════════════════════════════════════════════
+         TAB 6 — MANUFACTURING
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.activeTab === 'mfg'">
+
+        <!-- Date filter bar -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body py-3">
+                <div class="row g-3 align-items-end">
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small text-muted mb-1">📅 Planned Start From</label>
+                        <input type="date" class="form-control form-control-sm" style="min-width:150px;"
+                            t-att-value="state.mfgDateFrom" t-on-change="onMfgDateFrom"/>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label fw-semibold small text-muted mb-1">📅 Planned Start To</label>
+                        <input type="date" class="form-control form-control-sm" style="min-width:150px;"
+                            t-att-value="state.mfgDateTo" t-on-change="onMfgDateTo"/>
+                    </div>
+                    <div class="col-auto d-flex gap-2">
+                        <button class="btn btn-primary btn-sm px-4" t-on-click="applyMfgFilters">🔍 Apply</button>
+                        <button class="btn btn-outline-secondary btn-sm" t-on-click="resetMfgFilters">↺ Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <t t-if="state.mfgLoading">
+            <div class="d-flex justify-content-center align-items-center" style="height:300px;">
+                <div class="spinner-border text-primary" role="status"/>
+            </div>
+        </t>
+        <t t-else="">
+
+            <!-- KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-2">
+                    <div class="card border-secondary text-center p-3">
+                        <div class="fs-2 fw-bold text-secondary"><t t-esc="mfgOrdersByState.draft"/></div>
+                        <div class="text-muted small">Draft MOs</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-primary text-center p-3">
+                        <div class="fs-2 fw-bold text-primary"><t t-esc="mfgOrdersByState.confirmed"/></div>
+                        <div class="text-muted small">Confirmed</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-warning text-center p-3">
+                        <div class="fs-2 fw-bold text-warning"><t t-esc="mfgOrdersByState.progress"/></div>
+                        <div class="text-muted small">In Progress</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-success text-center p-3">
+                        <div class="fs-2 fw-bold text-success"><t t-esc="mfgOrdersByState.done"/></div>
+                        <div class="text-muted small">Done</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-danger text-center p-3">
+                        <div class="fs-2 fw-bold text-danger"><t t-esc="mfgOrdersByState.late"/></div>
+                        <div class="text-muted small">⚠️ Overdue</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-danger text-center p-3">
+                        <div class="fs-2 fw-bold text-danger"><t t-esc="mfgTotalShortages"/></div>
+                        <div class="text-muted small">🔴 Shortages</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-tab pills -->
+            <ul class="nav nav-pills mb-3">
+                <li class="nav-item">
+                    <a href="#" class="nav-link" t-att-class="state.mfgActiveSubTab === 'orders' ? 'active' : ''"
+                       t-on-click="() => this.setMfgSubTab('orders')">
+                        📋 Production Orders (<t t-esc="state.mfgOrders.length"/>)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" t-att-class="state.mfgActiveSubTab === 'bom' ? 'active' : ''"
+                       t-on-click="() => this.setMfgSubTab('bom')">
+                        🧩 BoM Stock Check
+                        <t t-if="mfgBomBlocked">
+                            <span class="badge bg-danger ms-1"><t t-esc="mfgBomBlocked"/> blocked</span>
+                        </t>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" t-att-class="state.mfgActiveSubTab === 'shortages' ? 'active' : ''"
+                       t-on-click="() => this.setMfgSubTab('shortages')">
+                        🔴 Component Shortages
+                        <t t-if="mfgTotalShortages">
+                            <span class="badge bg-danger ms-1"><t t-esc="mfgTotalShortages"/></span>
+                        </t>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- SUB-TAB: Production Orders -->
+            <t t-if="state.mfgActiveSubTab === 'orders'">
+                <t t-if="!state.mfgOrders.length">
+                    <div class="alert alert-success text-center p-5">
+                        <h5>✅ No active manufacturing orders found.</h5>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0">📋 Manufacturing Orders</h5>
+                            <button class="btn btn-sm btn-success" t-on-click="downloadMfgOrders">⬇️ Download XLSX</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-hover table-bordered mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Product</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-center">Planned Start</th>
+                                        <th class="text-center">Planned End</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.mfgOrders" t-as="mo" t-key="mo.id">
+                                        <tr t-att-class="mo.isLate and mo.state !== 'done' ? 'table-danger' : ''">
+                                            <td class="fw-semibold align-middle">
+                                                <t t-esc="mo.name"/>
+                                                <t t-if="mo.isLate and mo.state !== 'done'">
+                                                    <span class="badge bg-danger ms-1 small">LATE</span>
+                                                </t>
+                                            </td>
+                                            <td class="align-middle"><t t-esc="mo.product"/></td>
+                                            <td class="text-center align-middle">
+                                                <t t-esc="mo.qty"/> <small class="text-muted"><t t-esc="mo.uom"/></small>
+                                            </td>
+                                            <td class="text-center align-middle text-muted small"><t t-esc="mo.dateStart"/></td>
+                                            <td class="text-center align-middle text-muted small"><t t-esc="mo.dateEnd"/></td>
+                                            <td class="text-center align-middle">
+                                                <span class="badge" t-att-class="mo.stateCls"><t t-esc="mo.stateLabel"/></span>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                    t-on-click="() => this.openMfgOrder(mo.id)">
+                                                    Open →
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            🔴 Rows highlighted in red are <strong>past their planned end date</strong> and not yet done.
+                        </div>
+                    </div>
+                </t>
+            </t>
+
+            <!-- SUB-TAB: BoM Stock Check -->
+            <t t-if="state.mfgActiveSubTab === 'bom'">
+                <t t-if="!state.mfgBomStock.length">
+                    <div class="alert alert-secondary text-center p-5">
+                        <h5>📭 No Bills of Materials found.</h5>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="card border-success text-center p-3">
+                                <div class="fs-2 fw-bold text-success"><t t-esc="mfgBomReady"/></div>
+                                <div class="text-muted small">✅ Ready to Produce</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-warning text-center p-3">
+                                <div class="fs-2 fw-bold text-warning"><t t-esc="mfgBomPartial"/></div>
+                                <div class="text-muted small">⚠️ Partial Stock</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-danger text-center p-3">
+                                <div class="fs-2 fw-bold text-danger"><t t-esc="mfgBomBlocked"/></div>
+                                <div class="text-muted small">🔴 Blocked (No Stock)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h5 class="mb-0">🧩 Bill of Materials — Stock Feasibility</h5></div>
+                        <div class="card-body p-0">
+                            <table class="table table-hover table-bordered mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Finished Product</th>
+                                        <th class="text-center">BoM Qty</th>
+                                        <th class="text-center">Can Produce</th>
+                                        <th>Components (Available / Needed)</th>
+                                        <th class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.mfgBomStock" t-as="bom" t-key="bom.bomId">
+                                        <tr t-att-class="bom.status === 'blocked' ? 'table-danger' : bom.status === 'partial' ? 'table-warning' : ''">
+                                            <td class="fw-semibold align-middle"><t t-esc="bom.product"/></td>
+                                            <td class="text-center align-middle">
+                                                <t t-esc="bom.bomQty"/> <small class="text-muted"><t t-esc="bom.uom"/></small>
+                                            </td>
+                                            <td class="text-center align-middle fw-bold">
+                                                <t t-if="bom.canProduce > 0">
+                                                    <span class="text-success"><t t-esc="bom.canProduce"/> sets</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-danger">0</span>
+                                                </t>
+                                            </td>
+                                            <td class="align-middle">
+                                                <t t-foreach="bom.components" t-as="comp" t-key="comp.name">
+                                                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom small"
+                                                         t-att-class="comp.ok ? '' : 'text-danger fw-semibold'">
+                                                        <span><t t-esc="comp.name"/></span>
+                                                        <span class="ms-3 text-nowrap">
+                                                            <t t-esc="comp.available"/>/<t t-esc="comp.needed"/>
+                                                            <small class="ms-1 text-muted"><t t-esc="comp.uom"/></small>
+                                                            <t t-if="!comp.ok"><span class="badge bg-danger ms-1">short</span></t>
+                                                        </span>
+                                                    </div>
+                                                </t>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <t t-if="bom.status === 'ready'">
+                                                    <span class="badge bg-success">✅ Ready</span>
+                                                </t>
+                                                <t t-elif="bom.status === 'partial'">
+                                                    <span class="badge bg-warning text-dark">⚠️ Partial</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-danger">🔴 Blocked</span>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            💡 <strong>Can Produce</strong> = how many full sets you can make with current stock.
+                            Components shown as <strong>available / needed</strong>. Red = insufficient stock.
+                        </div>
+                    </div>
+                </t>
+            </t>
+
+            <!-- SUB-TAB: Component Shortages -->
+            <t t-if="state.mfgActiveSubTab === 'shortages'">
+                <t t-if="!state.mfgShortages.length">
+                    <div class="alert alert-success text-center p-5">
+                        <h5>✅ No component shortages for active manufacturing orders!</h5>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="alert alert-danger d-flex align-items-center gap-3 mb-4">
+                        <span style="font-size:2rem;">🔴</span>
+                        <div>
+                            <strong><t t-esc="mfgTotalShortages"/> component shortage(s)</strong> found in
+                            confirmed/in-progress manufacturing orders. Purchase or transfer stock to unblock production.
+                        </div>
+                    </div>
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0">🔴 Component Shortages — Active MOs</h5>
+                            <button class="btn btn-sm btn-success" t-on-click="downloadShortages">⬇️ Download XLSX</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-hover table-bordered mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Manufacturing Order</th>
+                                        <th>Component</th>
+                                        <th class="text-center">Needed</th>
+                                        <th class="text-center">Reserved</th>
+                                        <th class="text-center">Missing</th>
+                                        <th class="text-center">Severity</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.mfgShortages" t-as="sh" t-key="sh.moName + sh.component">
+                                        <tr t-att-class="sh.severity === 'high' ? 'table-danger' : sh.severity === 'medium' ? 'table-warning' : ''">
+                                            <td class="fw-semibold align-middle"><t t-esc="sh.moName"/></td>
+                                            <td class="align-middle"><t t-esc="sh.component"/></td>
+                                            <td class="text-center align-middle">
+                                                <t t-esc="sh.needed"/> <small class="text-muted"><t t-esc="sh.uom"/></small>
+                                            </td>
+                                            <td class="text-center align-middle text-muted"><t t-esc="sh.reserved"/></td>
+                                            <td class="text-center align-middle fw-bold text-danger">-<t t-esc="sh.missing"/></td>
+                                            <td class="text-center align-middle">
+                                                <t t-if="sh.severity === 'high'"><span class="badge bg-danger">🔴 High</span></t>
+                                                <t t-elif="sh.severity === 'medium'"><span class="badge bg-warning text-dark">🟡 Medium</span></t>
+                                                <t t-else=""><span class="badge bg-secondary">⚪ Low</span></t>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <t t-if="sh.moId">
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        t-on-click="() => this.openMfgOrder(sh.moId)">
+                                                        Open MO →
+                                                    </button>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            💡 Severity: <strong>High</strong> = missing &gt;50 units · <strong>Medium</strong> = missing 10–50 · <strong>Low</strong> = &lt;10.
+                            Click <strong>Open MO →</strong> to go directly to the manufacturing order.
+                        </div>
+                    </div>
+                </t>
+            </t>
+
+        </t><!-- /mfgLoading else -->
+    </t><!-- /mfg tab -->
+
+    <!-- ══════════════════════════════════════════════
+         VENDOR SELECTION MODAL
+    ══════════════════════════════════════════════ -->
+    <t t-if="state.showVendorModal">
+        <div class="modal-backdrop show" style="opacity:0.5; position:fixed; inset:0; z-index:1040;" t-on-click="closeVendorModal"/>
+        <div class="modal d-block" style="z-index:1050;" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">🏭 Select a Vendor for Purchase Order</h5>
+                        <button class="btn-close btn-close-white" t-on-click="closeVendorModal"/>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning mb-3 py-2"><strong>⚠️ No vendor found</strong> for selected products. Search below.</div>
+                        <div class="mb-3">
+                            <p class="fw-semibold mb-1 text-muted small">PRODUCTS (<t t-esc="selectedCount"/>):</p>
+                            <div style="max-height:120px; overflow-y:auto;" class="border rounded p-2 bg-light">
+                                <t t-foreach="state.suggestions.filter(s => state.selectedProducts.has(s.productId))" t-as="sp" t-key="sp.productId">
+                                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                        <span class="fw-semibold small"><t t-esc="sp.productName"/></span>
+                                        <span class="badge bg-primary ms-2"><t t-esc="sp.suggestQty"/> <t t-esc="sp.uom"/></span>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Search Vendor</label>
+                            <div class="input-group">
+                                <span class="input-group-text">🔍</span>
+                                <input type="text" class="form-control" placeholder="Type vendor name…"
+                                    t-att-value="state.vendorSearchTerm" t-on-input="onVendorSearchInput"/>
+                                <t t-if="state.vendorSearchLoading"><span class="input-group-text"><div class="spinner-border spinner-border-sm text-primary" role="status"/></span></t>
+                            </div>
+                        </div>
+                        <t t-if="state.vendorSearchResults.length">
+                            <div class="border rounded" style="max-height:200px; overflow-y:auto;">
+                                <t t-foreach="state.vendorSearchResults" t-as="v" t-key="v.id">
+                                    <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
+                                         t-att-class="state.chosenVendorId === v.id ? 'bg-primary text-white' : 'bg-white'"
+                                         style="cursor:pointer;" t-on-click="() => this.selectVendor(v.id, v.name)">
+                                        <div>
+                                            <div class="fw-semibold"><t t-esc="v.name"/></div>
+                                            <small t-att-class="state.chosenVendorId === v.id ? 'opacity-75' : 'text-muted'">
+                                                <t t-if="v.email"><t t-esc="v.email"/></t>
+                                                <t t-if="v.phone"> · <t t-esc="v.phone"/></t>
+                                            </small>
+                                        </div>
+                                        <t t-if="state.chosenVendorId === v.id"><span class="badge bg-white text-primary">✓ Selected</span></t>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-if="state.chosenVendorId">
+                            <div class="alert alert-success mt-3 mb-0 d-flex align-items-center gap-2">
+                                <span style="font-size:1.4rem;">✅</span>
+                                <div>Vendor: <strong t-esc="state.chosenVendorName"/><br/><small>PO for <strong t-esc="selectedCount"/> product(s).</small></div>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary" t-on-click="closeVendorModal">Cancel</button>
+                        <button class="btn btn-primary" t-att-disabled="!state.chosenVendorId" t-on-click="createPOWithChosenVendor">⚡ Create Purchase Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</div>
+</t>
+
+</templates>

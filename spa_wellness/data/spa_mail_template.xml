@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sms_template_appointment_confirm" model="sms.template">
+        <field name="name">Spa Appointment Confirmation</field>
+        <field name="model_id" ref="model_spa_appointment"/>
+        <field name="body">Dear {{ object.partner_id.name }}, your appointment for {{ object.service_id.name }} is confirmed on {{ object.start_datetime | date }}. Therapist: {{ object.therapist_id.name }}. Room: {{ object.room_id.name }}. Thank you!</field>
+    </record>
+
+    <record id="email_template_appointment_reminder" model="mail.template">
+        <field name="name">Spa Appointment Reminder</field>
+        <field name="model_id" ref="model_spa_appointment"/>
+        <field name="subject">Reminder: Your Spa Appointment Tomorrow</field>
+        <field name="body_html">
+            &lt;p&gt;Dear {{ object.partner_id.name }},&lt;/p&gt;
+            &lt;p&gt;This is a reminder for your upcoming spa appointment:&lt;/p&gt;
+            &lt;ul&gt;
+                &lt;li&gt;Service: {{ object.service_id.name }}&lt;/li&gt;
+                &lt;li&gt;Date/Time: {{ object.start_datetime }}&lt;/li&gt;
+                &lt;li&gt;Therapist: {{ object.therapist_id.name }}&lt;/li&gt;
+                &lt;li&gt;Room: {{ object.room_id.name }}&lt;/li&gt;
+            &lt;/ul&gt;
+            &lt;p&gt;We look forward to seeing you!&lt;/p&gt;
+        </field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+    </record>
+
+    <!-- Scheduled action: Membership expiry check -->
+    <record id="ir_cron_membership_expiry" model="ir.cron">
+        <field name="name">Spa: Check Membership Expiry</field>
+        <field name="model_id" ref="model_spa_membership"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_expiry()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_spa_appointment">
+         <t t-call="web.html_container">
+        <t t-call="web.external_layout">
+            <t t-foreach="docs" t-as="o">
+
+                <div class="page">
+
+                    <h2>
+                        Spa Appointment
+                        <span t-field="o.name"/>
+                    </h2>
+
+                    <!-- Customer Info -->
+                    <div class="row mt32">
+                        <div class="col-6">
+                            <strong>Customer :</strong>
+                            <span t-field="o.partner_id.name"/>
+                            <br/>
+                            <strong>Mobile :</strong>
+                            <span t-field="o.mobile"/>
+                        </div>
+
+                        <div class="col-6">
+                            <strong>Status :</strong>
+                            <span t-field="o.state"/>
+                            <br/>
+                            <strong>Branch :</strong>
+                            <span t-field="o.company_id.name"/>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <!-- Service Details -->
+                    <h4>Service Details</h4>
+
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Service</strong></td>
+                            <td><span t-field="o.service_id.name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Therapist</strong></td>
+                            <td><span t-field="o.therapist_id.name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Room</strong></td>
+                            <td><span t-field="o.room_id.name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Start Time</strong></td>
+                            <td><span t-field="o.start_datetime"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>End Time</strong></td>
+                            <td><span t-field="o.end_datetime"/></td>
+                        </tr>
+                    </table>
+
+                    <!-- Consumables -->
+                    <t t-if="o.consumable_line_ids">
+                        <h4 class="mt32">Consumables</h4>
+
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr t-foreach="o.consumable_line_ids" t-as="line">
+                                    <td>
+                                        <span t-field="line.product_id"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.quantity"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.unit_price"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-field="line.total_amount"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <!-- Pricing -->
+                    <h4 class="mt32">Summary</h4>
+
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Service Charge</td>
+                            <td class="text-end">
+                                <span t-field="o.service_charge"/>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Consumables</td>
+                            <td class="text-end">
+                                <span t-field="o.consumable_total"/>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td class="text-end">
+                                <strong>
+                                    <span t-field="o.total_price"/>
+                                </strong>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </t>
+        </t>
+         </t>
+
+    </template>
+
+
+
+</odoo>

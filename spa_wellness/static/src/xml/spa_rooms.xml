@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="spa_wellness.SpaRooms">
+
+        <div class="smp-page">
+
+            <!-- HEADER -->
+            <div class="smp-header">
+                <button class="smp-back-btn" t-on-click="goBack">← Back</button>
+
+                <div class="smp-title-wrap">
+                    <span class="smp-icon">🛏</span>
+                    <h2 class="smp-title">Spa Rooms</h2>
+                </div>
+                <button class="btn btn-primary" t-on-click="openBookingPanel">
+                    + New Booking
+                </button>
+
+                <span class="smp-subtitle">
+                    Manage available treatment rooms
+                </span>
+            </div>
+
+            <!-- LOADING -->
+            <div t-if="state.loading" class="smp-loading">
+                <i class="fa fa-spinner fa-spin fa-2x"/>
+                <span>Loading rooms…</span>
+            </div>
+
+            <!-- ROOMS GRID -->
+            <div t-if="!state.loading" class="smp-grid">
+                <t t-if="state.rooms.length === 0">
+                    <div class="smp-empty">No rooms found.</div>
+                </t>
+                <t t-foreach="state.rooms" t-as="room" t-key="room.id">
+                    <div class="smp-card"
+                         t-on-click="() => this.openRoom(room.id)">
+                        <!-- HEADER -->
+                        <div class="smp-card-header">
+                            <div class="smp-plan-icon">🛏</div>
+                            <div class="smp-plan-name" t-esc="room.name"/>
+                        </div>
+                        <!-- ROOM CODE -->
+                        <div t-if="room.code" class="smp-note">
+                            Code: <t t-esc="room.code"/>
+                        </div>
+                        <div class="smp-divider"/>
+                        <!-- ROOM DETAILS -->
+                        <div class="smp-section">
+
+                            <div class="smp-service-row">
+                                <span>Type</span>
+                                <span class="smp-badge smp-badge-teal"
+                                      t-esc="room.room_type"/>
+                            </div>
+                            <div class="smp-service-row">
+                                <span>Capacity</span>
+                                <span class="smp-badge smp-badge-gold">
+                                    <t t-esc="room.capacity"/>
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="spa_wellness.SpaServices">
+
+    <div class="smp-page">
+
+        <!-- HEADER -->
+        <div class="smp-header">
+            <button class="smp-back-btn" t-on-click="goBack">← Back</button>
+
+            <div class="smp-title-wrap">
+                <span class="smp-icon">💆</span>
+                <h2 class="smp-title">Spa Services</h2>
+            </div>
+            <button class="btn btn-primary" t-on-click="openBookingPanel">
+                    + New Booking
+                </button>
+
+             <div t-if="selectedCount > 0" class="smp-appointment-bar">
+            <span class="smp-bar-count">
+                <t t-esc="selectedCount"/> service(s) selected
+            </span>
+            <button class="smp-bar-btn" t-on-click="createAppointment">
+                📅 Create Appointment
+            </button>
+        </div>
+
+            <span class="smp-subtitle">
+                Select services to book an appointment
+            </span>
+        </div>
+
+        <!-- LOADING -->
+        <div t-if="state.loading" class="smp-loading">
+            <i class="fa fa-spinner fa-spin fa-2x"/>
+            <span>Loading services…</span>
+        </div>
+
+        <!-- SERVICES GRID -->
+        <div t-if="!state.loading" class="smp-grid">
+
+            <t t-if="state.services.length === 0">
+                <div class="smp-empty">No services found.</div>
+            </t>
+
+            <t t-foreach="state.services" t-as="service" t-key="service.id">
+
+                <div class="smp-card"
+                     t-att-class="isSelected(service.id) ? 'smp-card smp-card-selected' : 'smp-card'"
+                     t-on-click="(ev) => this.toggleSelect(service.id, ev)">
+
+                    <!-- SELECTION CHECKBOX -->
+<!--                    <div class="smp-card-check">-->
+<!--                        <input type="checkbox"-->
+<!--                               t-att-checked="isSelected(service.id)"-->
+<!--                               t-on-click="(ev) => this.toggleSelect(service.id, ev)"/>-->
+<!--                    </div>-->
+
+                    <!-- HEADER -->
+                    <div class="smp-card-header">
+                        <div class="smp-plan-icon">💆</div>
+                        <div class="smp-plan-name"
+                             t-esc="service.name"/>
+                    </div>
+
+                    <!-- CATEGORY -->
+                    <div class="smp-note">
+                        <t t-esc="service.categoryName"/>
+                    </div>
+
+                    <div class="smp-divider"/>
+
+                    <!-- DETAILS -->
+                    <div class="smp-section">
+
+                        <div class="smp-service-row">
+                            <span>Duration</span>
+                            <span class="smp-badge smp-badge-teal">
+                                <t t-esc="service.duration"/> mins
+                            </span>
+                        </div>
+
+                        <div class="smp-service-row">
+                            <span>Room Type</span>
+                            <span class="smp-badge smp-badge-gold"
+                                  t-esc="service.room_type"/>
+                        </div>
+
+                        <div class="smp-service-row">
+                            <span>Price</span>
+                            <span class="smp-badge smp-badge-green">
+                                ₹ <t t-esc="service.price"/>
+                            </span>
+                        </div>
+
+                        <div t-if="service.is_commission"
+                             class="smp-note">
+                            Commission Enabled
+                        </div>
+
+                    </div>
+
+                    <!-- View Details link (does NOT open appointment) -->
+                    <div class="smp-card-footer">
+                        <a t-on-click.stop="() => this.openService(service.id)"
+                           class="smp-link">View Details →</a>
+                    </div>
+
+                </div>
+
+            </t>
+        </div>
+
+        <!-- FLOATING APPOINTMENT BAR -->
+
+
+    </div>
+
+</t>
+</templates>

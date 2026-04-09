@@ -1,0 +1,521 @@
+/* ═══════════════════════════════════════════════════════════
+   SPA WELLNESS DASHBOARD  — Purple/Lavender Theme
+   Matches the booking panel's violet colour scheme exactly.
+   All rules scoped to .spd-root — safe inside Odoo 17/18/19.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Reset & root ─────────────────────────────────────────── */
+.spd-root {
+    --pu:        #9b59b6;          /* primary purple  */
+    --pu-dk:     #9b59b6;          /* darker purple   */
+    --pu-lt:     #a99df9;          /* lighter purple  */
+    --pu-bg:     #f0eeff;          /* lavender tint   */
+    --pu-bg2:    #e8e4fd;          /* slightly deeper */
+    --pu-pill:   rgba(124,110,247,.12);
+    --wh:        #ffffff;
+    --txt:       #2d2d4e;          /* deep indigo text*/
+    --txt-2:     #6b6b8f;          /* muted text      */
+    --txt-3:     #a0a0c0;          /* very muted      */
+    --border:    rgba(124,110,247,.18);
+    --shadow-sm: 0 2px 12px rgba(124,110,247,.10);
+    --shadow-md: 0 8px 32px rgba(124,110,247,.18);
+    --shadow-lg: 0 16px 48px rgba(124,110,247,.24);
+    --radius:    16px;
+
+    position:   relative;
+    min-height: 100vh;
+    width:      100%;
+    background: var(--pu-bg);
+    color:      var(--txt);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    box-sizing:  border-box;
+    overflow-x:  hidden;
+}
+
+.spd-root *, .spd-root *::before, .spd-root *::after {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+}
+
+/* ── HEADER ───────────────────────────────────────────────── */
+.spd-header {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    padding:         18px 40px;
+    background:      var(--wh);
+    border-bottom:   1px solid var(--border);
+    box-shadow:      var(--shadow-sm);
+    position:        relative;
+    z-index:         10;
+}
+
+/* Brand */
+.spd-brand {
+    display:     flex;
+    align-items: center;
+    gap:         10px;
+}
+
+.spd-brand-logo {
+    height: 38px;
+    width:  auto;
+    object-fit: contain;
+}
+
+.spd-brand-text {
+    display:        flex;
+    flex-direction: column;
+    gap:            1px;
+}
+
+.spd-brand-name {
+    font-size:      17px;
+    font-weight:    700;
+    color:          var(--pu);
+    letter-spacing: .01em;
+    line-height:    1;
+}
+
+.spd-brand-sub {
+    font-size:      10px;
+    font-weight:    500;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color:          var(--txt-3);
+}
+
+/* Clock */
+.spd-clock-block {
+    text-align: center;
+}
+
+.spd-clock {
+    font-size:      28px;
+    font-weight:    700;
+    color:          var(--pu);
+    letter-spacing: .04em;
+    line-height:    1;
+}
+
+.spd-clock-date {
+    font-size:  11px;
+    color:      var(--txt-2);
+    margin-top: 3px;
+}
+
+/* New Booking button — matches the booking panel's tab style */
+.spd-book-btn {
+    background:    linear-gradient(135deg, var(--pu), var(--pu-dk));
+    color:         #fff;
+    border:        none;
+    border-radius: 50px;
+    padding:       11px 24px;
+    font-size:     13px;
+    font-weight:   600;
+    letter-spacing:.04em;
+    cursor:        pointer;
+    box-shadow:    0 4px 16px rgba(124,110,247,.35);
+    transition:    transform .18s, box-shadow .18s, opacity .15s;
+    white-space:   nowrap;
+}
+
+.spd-book-btn:hover {
+    transform:  translateY(-2px);
+    box-shadow: 0 8px 24px rgba(124,110,247,.5);
+    opacity:    .92;
+}
+
+/* ── STAT PILLS ───────────────────────────────────────────── */
+.spd-pills {
+    display:         flex;
+    gap:             16px;
+    padding:         24px 40px;
+    flex-wrap:       wrap;
+}
+
+.spd-pill {
+    display:       flex;
+    align-items:   center;
+    gap:           14px;
+    background:    var(--wh);
+    border:        1px solid var(--border);
+    border-radius: var(--radius);
+    padding:       16px 22px;
+    flex:          1 1 180px;
+    box-shadow:    var(--shadow-sm);
+    animation:     spd-up .5s ease both;
+    transition:    transform .18s, box-shadow .18s;
+}
+
+.spd-pill:hover {
+    transform:  translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.spd-pill:nth-child(1) { animation-delay: .05s; }
+.spd-pill:nth-child(2) { animation-delay: .10s; }
+.spd-pill:nth-child(3) { animation-delay: .15s; }
+.spd-pill:nth-child(4) { animation-delay: .20s; }
+
+@keyframes spd-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.spd-pill-icon {
+    width:           44px;
+    height:          44px;
+    border-radius:   12px;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    font-size:       20px;
+    flex-shrink:     0;
+}
+
+.spd-pill-icon--purple { background: rgba(124,110,247,.12); }
+.spd-pill-icon--blue   { background: rgba(99, 179,237,.12); }
+.spd-pill-icon--green  { background: rgba(72, 187,120,.12); }
+.spd-pill-icon--amber  { background: rgba(237,183, 77,.12); }
+
+.spd-pill-body {
+    display:        flex;
+    flex-direction: column;
+    gap:            2px;
+}
+
+.spd-pill-val {
+    font-size:   26px;
+    font-weight: 800;
+    color:       var(--pu);
+    line-height: 1;
+}
+
+.spd-pill-val--sm {
+    font-size: 17px;
+}
+
+.spd-pill-lbl {
+    font-size:      11px;
+    font-weight:    500;
+    text-transform: uppercase;
+    letter-spacing: .10em;
+    color:          var(--txt-3);
+}
+
+/* ── TWO MAIN CARDS ──────────────────────────────────────── */
+.spd-cards {
+    display:               grid;
+    grid-template-columns: 1fr 1fr;
+    gap:                   20px;
+    padding:               0 40px 20px;
+    max-width:             1100px;
+}
+
+/* Card base */
+.spd-card {
+    position:      relative;
+    border-radius: 20px;
+    overflow:      hidden;
+    cursor:        pointer;
+    min-height:    300px;
+    animation:     spd-up .65s ease both;
+    transition:    transform .25s cubic-bezier(.34,1.5,.64,1),
+                   box-shadow .25s ease;
+}
+
+.spd-card:nth-child(1) { animation-delay: .22s; }
+.spd-card:nth-child(2) { animation-delay: .30s; }
+
+.spd-card:hover {
+    transform:  translateY(-6px) scale(1.01);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Appointments card — primary purple gradient */
+.spd-card--appt {
+    background: linear-gradient(140deg, var(--pu) 0%, var(--pu-dk) 60%, #4338a8 100%);
+    box-shadow: var(--shadow-md);
+}
+
+/* More card — soft white with purple border */
+.spd-card--more {
+    background: var(--wh);
+    border:     1.5px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Decorative blurred circles inside card */
+.spd-card-deco {
+    position:       absolute;
+    inset:          0;
+    pointer-events: none;
+}
+
+.spd-deco-circle {
+    position:      absolute;
+    border-radius: 50%;
+    opacity:       .18;
+}
+
+/* Appointments card decoration (light circles on purple) */
+.spd-deco-c1 {
+    width: 220px; height: 220px;
+    background: #fff;
+    top: -60px; right: -50px;
+    filter: blur(40px);
+}
+.spd-deco-c2 {
+    width: 160px; height: 160px;
+    background: #c4b5fd;
+    bottom: -30px; left: 20px;
+    filter: blur(50px);
+}
+
+/* More card decoration (purple circles on white) */
+.spd-deco-c3 {
+    width: 200px; height: 200px;
+    background: var(--pu-bg2);
+    top: -40px; right: -40px;
+    filter: blur(36px);
+    opacity: .6;
+}
+.spd-deco-c4 {
+    width: 140px; height: 140px;
+    background: var(--pu-bg);
+    bottom: -20px; left: 10px;
+    filter: blur(40px);
+    opacity: .8;
+}
+
+/* Card body */
+.spd-card-body {
+    position:       relative;
+    z-index:        2;
+    display:        flex;
+    flex-direction: column;
+    height:         100%;
+    min-height:     300px;
+    padding:        30px 30px 26px;
+}
+
+/* Icon circle */
+.spd-card-icon-wrap {
+    width:           54px;
+    height:          54px;
+    border-radius:   14px;
+    background:      rgba(255,255,255,.22);
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    font-size:       26px;
+    margin-bottom:   18px;
+    transition:      transform .22s;
+}
+
+.spd-card:hover .spd-card-icon-wrap {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.spd-card-icon-wrap--more {
+    background: var(--pu-pill);
+}
+
+/* Big count */
+.spd-card-count {
+    font-size:      52px;
+    font-weight:    800;
+    color:          #fff;
+    line-height:    1;
+    letter-spacing: -.02em;
+    margin-bottom:  12px;
+}
+
+.spd-card-count--more {
+    color:       var(--pu);
+    font-size:   36px;
+    font-weight: 300;
+    letter-spacing: .06em;
+}
+
+/* Title */
+.spd-card-title {
+    font-size:     22px;
+    font-weight:   700;
+    color:         #fff;
+    margin-bottom: 8px;
+    line-height:   1.1;
+}
+
+.spd-card--more .spd-card-title {
+    color: var(--txt);
+}
+
+/* Description */
+.spd-card-desc {
+    font-size:   13px;
+    color:       rgba(255,255,255,.72);
+    line-height: 1.6;
+    flex:        1;
+    max-width:   260px;
+}
+
+.spd-card--more .spd-card-desc {
+    color: var(--txt-2);
+}
+
+/* Footer CTA */
+.spd-card-footer {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    margin-top:      24px;
+    padding-top:     16px;
+    border-top:      1px solid rgba(255,255,255,.18);
+}
+
+.spd-card--more .spd-card-footer {
+    border-top-color: var(--border);
+}
+
+.spd-card-cta {
+    font-size:      11px;
+    font-weight:    600;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color:          rgba(255,255,255,.85);
+}
+
+.spd-card-cta--more {
+    color: var(--pu);
+}
+
+.spd-card-arrow {
+    font-size:  20px;
+    color:      rgba(255,255,255,.85);
+    transition: transform .2s;
+}
+
+.spd-card-arrow--more {
+    color: var(--pu);
+}
+
+.spd-card:hover .spd-card-arrow {
+    transform: translateX(6px);
+}
+
+/* ── QUICK BOOK STRIP ─────────────────────────────────────── */
+.spd-quick-wrap {
+    padding:    0 40px 40px;
+    max-width:  1100px;
+    animation:  spd-up .75s .38s ease both;
+}
+
+.spd-quick {
+    display:       flex;
+    align-items:   center;
+    justify-content: space-between;
+    width:         100%;
+    background:    var(--wh);
+    border:        1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding:       18px 26px;
+    cursor:        pointer;
+    color:         var(--txt);
+    text-align:    left;
+    box-shadow:    var(--shadow-sm);
+    transition:    background .18s, border-color .18s,
+                   transform .18s, box-shadow .18s;
+}
+
+.spd-quick:hover {
+    background:    var(--pu-bg);
+    border-color:  var(--pu-lt);
+    transform:     translateX(4px);
+    box-shadow:    var(--shadow-md);
+}
+
+.spd-quick-left {
+    display:     flex;
+    align-items: center;
+    gap:         14px;
+}
+
+.spd-quick-icon {
+    font-size:  20px;
+    color:      var(--pu);
+    flex-shrink:0;
+    display:    inline-block;
+    animation:  spd-spin 10s linear infinite;
+}
+
+@keyframes spd-spin {
+    to { transform: rotate(360deg); }
+}
+
+.spd-quick-txt {
+    display:        flex;
+    flex-direction: column;
+    gap:            2px;
+}
+
+.spd-quick-title {
+    font-size:   16px;
+    font-weight: 700;
+    color:       var(--txt);
+}
+
+.spd-quick-hint {
+    font-size: 12px;
+    color:     var(--txt-3);
+}
+
+.spd-quick-arr {
+    font-size:  20px;
+    color:      var(--pu);
+    transition: transform .2s;
+}
+
+.spd-quick:hover .spd-quick-arr {
+    transform: translateX(6px);
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 860px) {
+    .spd-header      { padding: 14px 18px; }
+    .spd-clock-block { display: none; }
+    .spd-pills       { padding: 16px 18px; gap: 10px; }
+    .spd-cards       { grid-template-columns: 1fr; padding: 0 18px 16px; gap: 14px; }
+    .spd-quick-wrap  { padding: 0 18px 30px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   HIDE SECONDARY NAV WHILE DASHBOARD IS ACTIVE
+   Targets Odoo 16 / 17 / 18 / 19 — all known nav selectors.
+   The body class "spa-dashboard-active" is added on mount
+   and removed on unmount, so other pages are unaffected.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Odoo 17 / 18 / 19  — .o_menu_sections holds the app sub-menu links */
+body.spa-dashboard-active .o_menu_sections {
+    display: none !important;
+}
+
+/* Odoo 16 / community — .o_main_navbar .o_menu_brand + nav links */
+body.spa-dashboard-active .o_main_navbar .o_menu_sections > .o_nav_entry,
+body.spa-dashboard-active .o_main_navbar .o_menu_sections > li {
+    display: none !important;
+}
+
+/* Fallback: hide the entire secondary horizontal nav bar if it becomes empty */
+body.spa-dashboard-active .o_menu_sections:empty {
+    display: none !important;
+}
+
+/* Odoo 17+ enterprise — secondary breadcrumb/app menu bar */
+body.spa-dashboard-active .o_action_manager > .o_action > .o_control_panel {
+    display: none !important;
+}

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="spa_wellness.MembershipPlans">
+        <div class="smp-page">
+
+            <!-- ── HEADER ── -->
+            <div class="smp-header">
+              <button class="smp-back-btn" t-on-click="goBack">← Back</button>
+              <div class="smp-title-wrap">
+                <span class="smp-icon">💎</span>
+                <h2 class="smp-title">Membership Plans</h2>
+              </div>
+              <span class="smp-subtitle">Click a plan to view details</span>
+            </div>
+
+            <!-- ── LOADING ── -->
+            <div t-if="state.loading" class="smp-loading">
+              <i class="fa fa-spinner fa-spin fa-2x"/>
+              <span>Loading plans…</span>
+            </div>
+
+          <!-- ── PLANS GRID ── -->
+            <div t-if="!state.loading" class="smp-grid">
+
+                <t t-if="state.plans.length === 0">
+                  <div class="smp-empty">No membership plans found.</div>
+                </t>
+
+                <t t-foreach="state.plans" t-as="plan" t-key="plan.id">
+                    <div class="smp-card" t-on-click="() => this.openPlan(plan.id)">
+
+                      <!-- Card Header -->
+                        <div class="smp-card-header">
+                            <div class="smp-plan-icon">💎</div>
+                            <div class="smp-plan-name" t-esc="plan.name"/>
+                            <div class="smp-plan-price">
+                              <span class="smp-currency">BHD</span>
+                              <span class="smp-amount" t-esc="plan.priceLabel"/>
+                            </div>
+                        </div>
+
+                        <!-- Duration Badge -->
+                        <div class="smp-duration-badge">
+                          🕐 <t t-esc="plan.durationLabel"/>
+                        </div>
+
+                        <!-- Description -->
+                        <div t-if="plan.note" class="smp-note" t-esc="plan.note"/>
+
+                        <!-- Divider -->
+                        <div class="smp-divider"/>
+
+                        <!-- Services -->
+                        <div class="smp-section">
+                            <div class="smp-section-title">🧖 Services Included</div>
+                            <t t-if="plan.serviceLines.length === 0">
+                              <div class="smp-no-data">No services added</div>
+                            </t>
+                            <t t-foreach="plan.serviceLines" t-as="sl" t-key="sl.id">
+                                <div class="smp-service-row">
+                                    <span class="smp-service-name"
+                                          t-esc="sl.service_id ? sl.service_id[1] : '—'"/>
+                                    <div class="smp-service-meta">
+                                        <span class="smp-badge smp-badge-teal">
+                                          <t t-esc="sl.allowed_sessions"/> sessions
+                                        </span>
+                                        <t t-if="sl.discount_percentage > 0">
+                                          <span class="smp-badge smp-badge-green">
+                                            <t t-esc="sl.discount_percentage"/>% off
+                                          </span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                      <!-- Product Discounts -->
+                        <t t-if="plan.productLines.length > 0">
+                            <div class="smp-divider"/>
+                            <div class="smp-section">
+                                <div class="smp-section-title">🛍 Product Discounts</div>
+                                <t t-foreach="plan.productLines" t-as="pl" t-key="pl.id">
+                                    <div class="smp-service-row">
+                                        <span class="smp-service-name"
+                                              t-esc="pl.product_id ? pl.product_id[1] : '—'"/>
+                                        <span class="smp-badge smp-badge-gold">
+                                          <t t-esc="pl.discount_percentage"/>% off
+                                        </span>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- Consultations -->
+                        <t t-if="plan.consultation_count > 0">
+                          <div class="smp-divider"/>
+                          <div class="smp-consult">
+                            🩺 <strong t-esc="plan.consultation_count"/> Free Consultations
+                          </div>
+                        </t>
+
+                        <!-- Footer CTA -->
+                        <div class="smp-card-footer">
+                          Be a Member →
+                        </div>
+
+                    </div>
+                </t>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="spa_wellness.SlotChecker">
+        <div class="ssc-page">
+            <!-- ── HEADER ── -->
+            <div class="ssc-header">
+              <button class="ssc-back-btn" t-on-click="goBack">← Back</button>
+              <div class="ssc-title-wrap">
+                <span class="ssc-icon">🕐</span>
+                <h2 class="ssc-title">Slot Checker</h2>
+              </div>
+              <span class="ssc-date" t-esc="state.slotDate"/>
+            </div>
+            <!-- ── FILTERS ── -->
+            <div class="ssc-filters">
+                  <div class="ssc-filter-group">
+                      <label class="ssc-filter-label">📅 Date</label>
+                      <input type="date"
+                             class="ssc-input"
+                             t-att-value="state.slotDate"
+                             t-on-change="(ev) => this.onFilterChange('slotDate', ev)"/>
+                  </div>
+                  <div class="ssc-filter-group">
+                      <label class="ssc-filter-label">⏱ Duration</label>
+                      <select class="ssc-input"
+                              t-on-change="(ev) => this.onFilterChange('slotDuration', ev)">
+                        <option value="30"  t-att-selected="state.slotDuration === '30'">30 Minutes</option>
+                        <option value="60"  t-att-selected="state.slotDuration === '60'">1 Hour</option>
+                        <option value="90"  t-att-selected="state.slotDuration === '90'">1.5 Hours</option>
+                        <option value="120" t-att-selected="state.slotDuration === '120'">2 Hours</option>
+                      </select>
+                  </div>
+                  <div class="ssc-filter-group">
+                      <label class="ssc-filter-label">👤 Therapist</label>
+                      <select class="ssc-input"
+                              t-on-change="(ev) => this.onFilterChange('slotTherapistId', ev)">
+                          <option value="">All Therapists</option>
+                          <t t-foreach="state.allTherapists" t-as="th" t-key="th.id">
+                            <option t-att-value="th.id"
+                                    t-att-selected="state.slotTherapistId == th.id"
+                                    t-esc="th.name"/>
+                          </t>
+                      </select>
+                  </div>
+                  <div class="ssc-filter-group">
+                      <label class="ssc-filter-label">🚪 Room</label>
+                      <select class="ssc-input"
+                              t-on-change="(ev) => this.onFilterChange('slotRoomId', ev)">
+                          <option value="">All Rooms</option>
+                          <t t-foreach="state.allRooms" t-as="rm" t-key="rm.id">
+                            <option t-att-value="rm.id"
+                                    t-att-selected="state.slotRoomId == rm.id"
+                                    t-esc="rm.name"/>
+                          </t>
+                      </select>
+                  </div>
+
+            </div>
+            <!-- ── LOADING ── -->
+            <div t-if="state.loading" class="ssc-loading">
+              <i class="fa fa-spinner fa-spin fa-2x"/>
+              <span>Loading slots…</span>
+            </div>
+            <!-- ── SLOT GRID ── -->
+            <div t-if="!state.loading" class="ssc-grid">
+
+                <t t-if="state.slots.length === 0">
+                  <div class="ssc-empty">No slots found for selected filters.</div>
+                </t>
+
+                <t t-foreach="state.slots" t-as="sl" t-key="sl.label">
+
+                    <!-- AVAILABLE SLOT — clickable -->
+                    <div t-if="sl.available"
+                         class="ssc-slot ssc-free"
+                         t-on-click="() => this.openAppointment(sl)">
+                      <div class="ssc-slot-time" t-esc="sl.label"/>
+                      <div class="ssc-slot-status">✅ Available</div>
+                      <div class="ssc-slot-hint">Click to Book</div>
+                    </div>
+
+                    <!-- BUSY SLOT — not clickable -->
+                    <div t-else="" class="ssc-slot ssc-busy">
+                        <div class="ssc-slot-time" t-esc="sl.label"/>
+                        <div class="ssc-slot-status">
+                            <t t-if="!sl.therapistFree and !sl.roomFree">🔴 Both Booked</t>
+                            <t t-elif="!sl.therapistFree">🟠 Therapist Busy</t>
+                            <t t-else="">🟠 Room Busy</t>
+                        </div>
+                        <div class="ssc-slot-hint">Unavailable</div>
+                    </div>
+
+                </t>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

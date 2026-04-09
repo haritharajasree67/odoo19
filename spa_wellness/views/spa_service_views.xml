@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_spa_service_tree" model="ir.ui.view">
+        <field name="name">spa.service.tree</field>
+        <field name="model">spa.service</field>
+        <field name="arch" type="xml">
+            <list string="Spa Services">
+                <field name="name"/>
+<!--                <field name="category_id"/>-->
+                <field name="duration"/>
+                <field name="price"/>
+                <field name="room_type"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spa_service_form" model="ir.ui.view">
+        <field name="name">spa.service.form</field>
+        <field name="model">spa.service</field>
+        <field name="arch" type="xml">
+            <form string="Spa Service">
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <group string="Service Information">
+                        <group>
+<!--                            <field name="category_id"/>-->
+                            <field name="duration"/>
+                            <field name="room_type"/>
+                            <field name="active"/>
+                        </group>
+
+                        <group>
+                            <field name="service_charge"/>
+                            <field name="price"/>
+                            <field name="currency_id"/>
+                        </group>
+                    </group>
+
+                    <group string="Description">
+                        <field name="description" colspan="2"/>
+                    </group>
+
+<!--                    &lt;!&ndash; Commission &ndash;&gt;-->
+<!--                    <group string="Commission Rules">-->
+<!--                        <group>-->
+<!--                            <field name="is_commission"/>-->
+<!--                            <field name="commission_type"/>-->
+<!--                            <field name="commission_value"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+
+                    <!-- Consumables -->
+                    <notebook>
+                        <page string="Consumables Used">
+                            <field name="consumable_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="product_price"/>
+                                    <field name="total_amount"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_spa_service" model="ir.actions.act_window">
+        <field name="name">Spa Services</field>
+        <field name="res_model">spa.service</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

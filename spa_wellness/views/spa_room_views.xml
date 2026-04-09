@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_spa_room_tree" model="ir.ui.view">
+        <field name="name">spa.room.tree</field>
+        <field name="model">spa.room</field>
+        <field name="arch" type="xml">
+            <list string="Spa Rooms">
+                <field name="name"/>
+                <field name="code"/>
+<!--                <field name="branch_id"/>-->
+                <field name="room_type"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spa_room_form" model="ir.ui.view">
+        <field name="name">spa.room.form</field>
+        <field name="model">spa.room</field>
+        <field name="arch" type="xml">
+            <form string="Spa Room">
+
+                <header>
+                    <!-- Status Buttons -->
+                    <button name="action_set_available"
+                            string="Set Available"
+                            type="object"
+                            class="btn-primary"
+                            invisible="status == 'available'"
+                          />
+
+                    <button name="action_set_maintenance"
+                            string="Set Maintenance"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="status == 'maintenance'"
+                            />
+
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="available,occupied,cleaning,maintenance"/>
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <group string="Room Information">
+                        <group>
+                            <field name="code"/>
+<!--                            <field name="branch_id"/>-->
+                            <field name="room_type"/>
+                        </group>
+
+                        <group>
+                            <field name="capacity"/>
+<!--                            <field name="active"/>-->
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                    </group>
+
+                    <!-- Notes -->
+                    <group string="Notes">
+                        <field name="notes" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_spa_room" model="ir.actions.act_window">
+        <field name="name">Spa Rooms</field>
+        <field name="res_model">spa.room</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pivot: Revenue by Therapist & Service -->
+    <record id="view_spa_appointment_pivot" model="ir.ui.view">
+        <field name="name">spa.appointment.pivot</field>
+        <field name="model">spa.appointment</field>
+        <field name="arch" type="xml">
+            <pivot string="Revenue Analysis">
+                <field name="therapist_id" type="row"/>
+                <field name="start_datetime" type="col" interval="month"/>
+                <field name="price" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_spa_appointment_graph" model="ir.ui.view">
+        <field name="name">spa.appointment.graph</field>
+        <field name="model">spa.appointment</field>
+        <field name="arch" type="xml">
+            <graph string="Appointment Analysis" type="bar">
+                <field name="therapist_id"/>
+                <field name="price" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_spa_report_daily" model="ir.actions.act_window">
+        <field name="name">Revenue &amp; Performance</field>
+        <field name="res_model">spa.appointment</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[('state','=','completed')]</field>
+    </record>
+
+    <record id="action_spa_commission_report" model="ir.actions.act_window">
+        <field name="name">Commission Report</field>
+        <field name="res_model">spa.commission</field>
+        <field name="view_mode">pivot,list,graph</field>
+    </record>
+</odoo>

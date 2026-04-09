@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="spa_wellness.Commission">
+          <div class="p-4">
+                <h2>Therapist Commission</h2>
+                <!-- FILTERS -->
+                <div class="row mb-3 align-items-end">
+                    <!-- Date From -->
+                    <div class="col-2">
+                        <label>Date From</label>
+                        <input type="date"
+                               t-model="state.date_from"
+                               class="form-control"/>
+                    </div>
+                    <!-- Date To -->
+                    <div class="col-2">
+                        <label>Date To</label>
+                        <input type="date"
+                               t-model="state.date_to"
+                               class="form-control"/>
+                    </div>
+                    <!-- Therapist -->
+                    <div class="col-3">
+                        <label>Therapist</label>
+                        <select class="form-control"
+                                t-model="state.therapist_id">
+
+                            <option value="">All Therapist</option>
+
+                            <t t-foreach="state.therapists" t-as="t" t-key="t.id">
+                                <option t-att-value="t.id">
+                                    <t t-esc="t.name"/>
+                                </option>
+                            </t>
+
+                        </select>
+                    </div>
+                    <!-- Filter Button -->
+                    <div class="col-2">
+                        <button class="btn btn-primary w-100"
+                                t-on-click="loadData">
+                            Filter
+                        </button>
+                    </div>
+                    <!-- Print XLSX -->
+                    <div class="col-2">
+                        <button class="btn btn-success w-100"
+                                t-on-click="downloadXlsx">
+                            Print
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLE -->
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Appointment</th>
+                            <th>Therapist</th>
+                            <th>Service</th>
+                            <th>Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="state.records" t-as="rec" t-key="rec.appointment">
+
+                            <tr>
+                                <td><t t-esc="rec.appointment"/></td>
+                                <td><t t-esc="rec.therapist"/></td>
+                                <td><t t-esc="rec.service"/></td>
+                                <td><b><t t-esc="rec.commission_amount"/></b></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+        </div>
+    </t>
+</templates>

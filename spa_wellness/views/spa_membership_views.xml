@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_spa_membership_list" model="ir.ui.view">
+        <field name="name">spa.membership.list</field>
+        <field name="model">spa.membership</field>
+        <field name="arch" type="xml">
+            <list string="Memberships" decoration-success="state == 'active'"
+                  decoration-muted="state in ('expired','cancelled')">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="membership_type"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="remaining_credits"/>
+                <field name="wallet_balance" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'draft'"
+                       decoration-danger="state == 'cancelled'"
+                       decoration-muted="state == 'expired'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_spa_membership_form" model="ir.ui.view">
+        <field name="name">spa.membership.form</field>
+        <field name="model">spa.membership</field>
+        <field name="arch" type="xml">
+            <form string="Membership">
+                <header>
+                    <button name="action_activate" string="Activate"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_create_invoice"
+                            string="Create Invoice"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'active' or invoice_id"/>
+                    <button name="action_expire" string="Mark Expired"
+                            type="object"
+                            invisible="state != 'active'"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object" class="btn-danger"
+                            invisible="state in ('cancelled','expired')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,expired,cancelled"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Membership Reference"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Customer Information">
+                            <field name="partner_id"/>
+                            <field name="membership_plan"/>
+                            <field name="membership_price"/>
+                            <field name="membership_type"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Validity">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="invoice_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Allowed Services">
+                            <field name="service_line_ids">
+                                <list editable="bottom">
+                                    <field name="service_id"/>
+                                    <field name="allowed_sessions"/>
+                                    <field name="used_sessions" readonly="1"/>
+                                    <field name="discount_percentage"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Product Discounts">
+                            <field name="product_line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="discount_percentage"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab: Credits (show for service_credit type) -->
+                        <page string="Credits / Sessions"
+                              invisible="membership_type != 'service_credit'">
+                            <group>
+                                <group>
+                                    <field name="total_credits"/>
+                                    <field name="used_credits"/>
+                                    <field name="remaining_credits"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Tab: Wallet (show for wallet type) -->
+                        <page string="Wallet"
+                              invisible="membership_type != 'wallet'">
+                            <group>
+                                <field name="wallet_balance"/>
+                            </group>
+                        </page>
+
+                        <!-- Tab: Covered Services -->
+                        <page string="Covered Services">
+                            <field name="service_ids" widget="many2many_tags"
+                            />
+                        </page>
+
+                        <!-- Tab: Notes -->
+                        <page string="Notes">
+                            <field name="notes" placeholder="Add internal notes here..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+<!--    <record id="view_spa_membership_search" model="ir.ui.view">-->
+<!--        <field name="name">spa.membership.search</field>-->
+<!--        <field name="model">spa.membership</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <search string="Search Memberships">-->
+<!--                <field name="name" string="Reference"/>-->
+<!--                <field name="partner_id" string="Customer"/>-->
+<!--                <field name="membership_type"/>-->
+<!--                <separator/>-->
+<!--                <filter name="active" string="Active" domain="[('state','=','active')]"/>-->
+<!--                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>-->
+<!--                <filter name="expired" string="Expired" domain="[('state','=','expired')]"/>-->
+<!--                <filter name="cancelled" string="Cancelled" domain="[('state','=','cancelled')]"/>-->
+<!--                <separator/>-->
+<!--                <filter name="service_credit" string="Service Credit"-->
+<!--                        domain="[('membership_type','=','service_credit')]"/>-->
+<!--                <filter name="wallet" string="Wallet"-->
+<!--                        domain="[('membership_type','=','wallet')]"/>-->
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="by_customer" string="Customer"-->
+<!--                            context="{'group_by': 'partner_id'}"/>-->
+<!--                    <filter name="by_type" string="Membership Type"-->
+<!--                            context="{'group_by': 'membership_type'}"/>-->
+<!--                    <filter name="by_state" string="Status"-->
+<!--                            context="{'group_by': 'state'}"/>-->
+<!--                </group>-->
+<!--            </search>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <!-- ACTION -->
+    <record id="action_spa_membership" model="ir.actions.act_window">
+        <field name="name">Memberships</field>
+        <field name="res_model">spa.membership</field>
+        <field name="view_mode">list,form</field>
+<!--        <field name="search_view_id" ref="view_spa_membership_search"/>-->
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+</odoo>

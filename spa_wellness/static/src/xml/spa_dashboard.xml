@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="spa_wellness.Dashboard">
+<div class="spd-root">
+
+  <!-- ── HEADER ───────────────────────────────────────────── -->
+  <header class="spd-header">
+    <div class="spd-brand">
+      <img src="/spa_wellness/static/src/img/logo.png"
+           class="spd-brand-logo" alt=""
+           onerror="this.style.display='none'"/>
+      <div class="spd-brand-text">
+        <span class="spd-brand-name">Spa &amp; Wellness</span>
+        <span class="spd-brand-sub">Management Suite</span>
+      </div>
+    </div>
+
+    <div class="spd-clock-block">
+      <div class="spd-clock" t-esc="state.currentTime"/>
+      <div class="spd-clock-date" t-esc="state.currentDate"/>
+    </div>
+
+    <button class="spd-book-btn" t-on-click="openNewBooking">
+      ＋ New Booking
+    </button>
+  </header>
+
+  <!-- ── STAT PILLS ───────────────────────────────────────── -->
+  <div class="spd-pills">
+
+    <div class="spd-pill">
+      <div class="spd-pill-icon spd-pill-icon--purple">📅</div>
+      <div class="spd-pill-body">
+        <div class="spd-pill-val">
+          <t t-if="state.loading">—</t>
+          <t t-else="" t-esc="state.bookingCount"/>
+        </div>
+        <div class="spd-pill-lbl">Today's Bookings</div>
+      </div>
+    </div>
+
+    <div class="spd-pill">
+      <div class="spd-pill-icon spd-pill-icon--blue">🕐</div>
+      <div class="spd-pill-body">
+        <div class="spd-pill-val">
+          <t t-if="state.loading">—</t>
+          <t t-else="" t-esc="state.upcomingCount"/>
+        </div>
+        <div class="spd-pill-lbl">Upcoming</div>
+      </div>
+    </div>
+
+    <div class="spd-pill">
+      <div class="spd-pill-icon spd-pill-icon--green">👤</div>
+      <div class="spd-pill-body">
+        <div class="spd-pill-val">
+          <t t-if="state.loading">—</t>
+          <t t-else="" t-esc="state.availableTherapists"/>
+        </div>
+        <div class="spd-pill-lbl">Therapists Free</div>
+      </div>
+    </div>
+
+    <div class="spd-pill">
+      <div class="spd-pill-icon spd-pill-icon--amber">💰</div>
+      <div class="spd-pill-body">
+        <div class="spd-pill-val spd-pill-val--sm">
+          <t t-if="state.loading">—</t>
+          <t t-else="" t-esc="formatRevenue(state.todayRevenue)"/>
+        </div>
+        <div class="spd-pill-lbl">Today's Revenue</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TWO MAIN ACTION CARDS ────────────────────────────── -->
+  <div class="spd-cards">
+
+    <!-- APPOINTMENTS -->
+    <div class="spd-card spd-card--appt" t-on-click="openBookings">
+      <div class="spd-card-deco">
+        <div class="spd-deco-circle spd-deco-c1"/>
+        <div class="spd-deco-circle spd-deco-c2"/>
+      </div>
+      <div class="spd-card-body">
+        <div class="spd-card-icon-wrap">
+          <span class="spd-card-emoji">📅</span>
+        </div>
+        <div class="spd-card-count">
+          <t t-if="state.loading">—</t>
+          <t t-else="" t-esc="state.bookingCount"/>
+        </div>
+        <h3 class="spd-card-title">Appointments</h3>
+        <p class="spd-card-desc">
+          View and manage today's schedule, client bookings and session status
+        </p>
+        <div class="spd-card-footer">
+          <span class="spd-card-cta">View all appointments</span>
+          <span class="spd-card-arrow">→</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORE OPTIONS -->
+    <div class="spd-card spd-card--more" t-on-click="openMore">
+      <div class="spd-card-deco">
+        <div class="spd-deco-circle spd-deco-c3"/>
+        <div class="spd-deco-circle spd-deco-c4"/>
+      </div>
+      <div class="spd-card-body">
+        <div class="spd-card-icon-wrap spd-card-icon-wrap--more">
+          <span class="spd-card-emoji">⚙️</span>
+        </div>
+        <div class="spd-card-count spd-card-count--more">···</div>
+        <h3 class="spd-card-title">More Options</h3>
+        <p class="spd-card-desc">
+          Access services, packages, therapists, rooms, reports and all system features
+        </p>
+        <div class="spd-card-footer">
+          <span class="spd-card-cta spd-card-cta--more">Explore features</span>
+          <span class="spd-card-arrow spd-card-arrow--more">→</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── QUICK BOOK STRIP ──────────────────────────────────── -->
+  <div class="spd-quick-wrap">
+    <button class="spd-quick" t-on-click="openNewBooking">
+      <div class="spd-quick-left">
+        <span class="spd-quick-icon">✦</span>
+        <div class="spd-quick-txt">
+          <span class="spd-quick-title">Quick Book</span>
+          <span class="spd-quick-hint">Start a new appointment right now</span>
+        </div>
+      </div>
+      <span class="spd-quick-arr">→</span>
+    </button>
+  </div>
+
+</div>
+</t>
+
+</templates>

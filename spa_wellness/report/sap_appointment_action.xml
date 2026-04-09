@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+<record id="action_report_spa_appointment" model="ir.actions.report">
+    <field name="name">Spa Appointment</field>
+    <field name="model">spa.appointment</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">spa_wellness.report_spa_appointment</field>
+    <field name="report_file">spa_wellness.report_spa_appointment</field>
+    <field name="binding_model_id" ref="model_spa_appointment"/>
+    <field name="binding_type">report</field>
+    <field name="print_report_name">'Appointment - %s' % (object.name)</field>
+</record>
+
+</odoo>

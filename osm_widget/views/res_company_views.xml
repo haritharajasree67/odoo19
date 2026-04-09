@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="hr_location_map_view" model="ir.ui.view">
+        <field name="name">hr.location.map</field>
+        <field name="model">hr.work.location</field>
+        <field name="inherit_id" ref="hr.hr_work_location_form_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//sheet" position="inside">
+
+                <group string="Location on Map">
+
+                    <!-- SELECT BUTTON WIDGET -->
+                    <field name="location_map"
+
+                           widget="osm_map"
+                           lat_field="latitude"
+                           lng_field="longitude"/>
+
+                    <field name="latitude" readonly="1"/>
+                    <field name="longitude" readonly="1"/>
+                    <field name="radius"/>
+
+                </group>
+
+            </xpath>
+
+        </field>
+    </record>
+
+
+</odoo>

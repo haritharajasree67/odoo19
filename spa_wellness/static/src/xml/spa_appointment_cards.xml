@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="spa.SpaAppointmentCards">
+
+<div style="
+    min-height: 100vh;
+    background: #f0eeff;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    box-sizing: border-box;
+">
+
+  <!-- ── HEADER BAR ─────────────────────────────────────────── -->
+  <div style="
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      background: #fff;
+      border-bottom: 1px solid rgba(124,110,247,.18);
+      box-shadow: 0 2px 12px rgba(124,110,247,.08);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      gap: 16px;
+  ">
+    <!-- Left: back + title -->
+    <div style="display:flex; align-items:center; gap:14px; flex-shrink:0;">
+      <button t-on-click="close" style="
+          background: #f0eeff;
+          color: #7c6ef7;
+          border: 1.5px solid rgba(124,110,247,.3);
+          border-radius: 50px;
+          padding: 7px 18px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+      ">← Dashboard</button>
+      <h2 style="margin:0; font-size:20px; font-weight:700; color:#2d2d4e;">
+        Today's Appointments
+      </h2>
+    </div>
+
+    <!-- Right: controls -->
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <button t-on-click="openBookingPanel" style="
+          background: linear-gradient(135deg,#7c6ef7,#5a50c8);
+          color: #fff;
+          border: none;
+          border-radius: 50px;
+          padding: 9px 22px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(124,110,247,.35);
+          white-space: nowrap;
+      ">＋ New Booking</button>
+
+      <input type="date"
+             t-att-value="state.selectedDate"
+             t-on-change="onDateChange"
+             style="
+                 border: 1.5px solid rgba(124,110,247,.25);
+                 border-radius: 8px;
+                 padding: 8px 12px;
+                 font-size: 13px;
+                 color: #2d2d4e;
+                 background: #fff;
+                 outline: none;
+             "/>
+
+      <input type="text"
+             placeholder="Search by name or mobile…"
+             t-on-input="onSearch"
+             style="
+                 border: 1.5px solid rgba(124,110,247,.25);
+                 border-radius: 8px;
+                 padding: 8px 14px;
+                 font-size: 13px;
+                 color: #2d2d4e;
+                 background: #fff;
+                 outline: none;
+                 width: 220px;
+             "/>
+    </div>
+  </div>
+
+  <!-- ── CARDS GRID ──────────────────────────────────────────── -->
+  <div style="
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      padding: 28px 32px;
+  ">
+
+    <!-- Empty state -->
+    <t t-if="state.appointments.length === 0">
+      <div style="
+          grid-column: 1/-1;
+          text-align: center;
+          padding: 80px 20px;
+          color: #a0a0c0;
+          font-size: 15px;
+      ">
+        <div style="font-size:48px; margin-bottom:16px;">📅</div>
+        No appointments found for this date.
+      </div>
+    </t>
+
+    <!-- Appointment cards -->
+    <t t-foreach="state.appointments" t-as="appt" t-key="appt.id">
+      <div t-on-click="() => this.openAppointment(appt.id)"
+           style="
+               background: #fff;
+               border: 1.5px solid rgba(124,110,247,.15);
+               border-radius: 16px;
+               padding: 0;
+               cursor: pointer;
+               box-shadow: 0 2px 12px rgba(124,110,247,.08);
+               overflow: hidden;
+               transition: transform .2s, box-shadow .2s;
+               display: flex;
+               flex-direction: column;
+           "
+           onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 28px rgba(124,110,247,.18)'"
+           onmouseleave="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(124,110,247,.08)'"
+      >
+
+        <!-- Card top accent strip + ref -->
+        <div style="
+            background: linear-gradient(135deg,#7c6ef7,#5a50c8);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        ">
+          <span style="
+              color:#fff;
+              font-size:13px;
+              font-weight:700;
+              letter-spacing:.02em;
+          "><t t-esc="appt.name"/></span>
+
+          <!-- Status badge -->
+          <span t-att-style="
+              'display:inline-block; padding:3px 10px; border-radius:50px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; ' +
+              (appt.state === 'confirmed'   ? 'background:rgba(255,255,255,.25);color:#fff;' :
+               appt.state === 'in_progress' ? 'background:#fbbf24;color:#7c3500;' :
+               appt.state === 'completed'   ? 'background:#6ee7b7;color:#065f46;' :
+               appt.state === 'cancelled'   ? 'background:#fca5a5;color:#7f1d1d;' :
+               appt.state === 'no_show'     ? 'background:#fca5a5;color:#7f1d1d;' :
+                                              'background:rgba(255,255,255,.2);color:#fff;')
+          ">
+            <t t-esc="appt.state"/>
+          </span>
+        </div>
+
+        <!-- Card body -->
+        <div style="padding:16px; display:flex; flex-direction:column; gap:10px; flex:1;">
+
+          <!-- Customer -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">👤</span>
+            <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+              <span style="font-size:10px; color:#a0a0c0; text-transform:uppercase; letter-spacing:.08em;">Customer</span>
+              <span style="font-size:14px; font-weight:600; color:#2d2d4e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <t t-esc="appt.partner_id ? appt.partner_id[1] : 'Walk-in'"/>
+              </span>
+            </div>
+          </div>
+
+          <!-- Therapist -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">💆</span>
+            <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+              <span style="font-size:10px; color:#a0a0c0; text-transform:uppercase; letter-spacing:.08em;">Therapist</span>
+              <span style="font-size:14px; font-weight:500; color:#2d2d4e;">
+                <t t-esc="appt.therapist_id ? appt.therapist_id[1] : '—'"/>
+              </span>
+            </div>
+          </div>
+
+          <!-- Room -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">🛏️</span>
+            <div style="display:flex; flex-direction:column; gap:1px;">
+              <span style="font-size:10px; color:#a0a0c0; text-transform:uppercase; letter-spacing:.08em;">Room</span>
+              <span style="font-size:14px; font-weight:500; color:#2d2d4e;">
+                <t t-esc="appt.room_id ? appt.room_id[1] : '—'"/>
+              </span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div style="height:1px; background:rgba(124,110,247,.1); margin:2px 0;"/>
+
+          <!-- Time + Price row -->
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:15px;">🕐</span>
+              <span style="font-size:15px; font-weight:600; color:#5a50c8;">
+                <t t-esc="formatTime(appt.start_datetime)"/>
+              </span>
+            </div>
+            <div style="
+                background: #f0eeff;
+                border: 1px solid rgba(124,110,247,.2);
+                border-radius: 8px;
+                padding: 4px 12px;
+                font-size: 14px;
+                font-weight: 700;
+                color: #7c6ef7;
+            ">
+              <t t-esc="(appt.total_price || 0).toFixed(3)"/> BD
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </t>
+
+  </div>
+
+</div>
+
+</t>
+
+</templates>

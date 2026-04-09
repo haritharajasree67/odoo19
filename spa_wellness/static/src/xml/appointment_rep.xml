@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="spa_wellness.SpaAppointment">
+         <div class="p-4">
+            <h2>Appointment Report</h2>
+             <!-- FILTERS -->
+             <div class="row mb-3">
+
+                <div class="col-3">
+                    <input type="date"
+                           class="form-control"
+                           t-model="state.date_from"/>
+                </div>
+                 <div class="col-3">
+                    <input type="date"
+                           class="form-control"
+                           t-model="state.date_to"/>
+                </div>
+                 <div class="col-2">
+                     <button class="btn btn-primary"
+                            t-on-click="loadData">
+                        Filter
+                     </button>
+                 </div>
+
+                 <div class="col-2">
+                    <button class="btn btn-success"
+                            t-on-click="downloadXlsx">
+                        Print XLSX
+                    </button>
+                 </div>
+
+             </div>
+
+             <!-- TABLE -->
+             <table class="table table-bordered table-striped">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Appointment</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <t t-foreach="state.records" t-as="r" t-key="r.appointment">
+                        <tr>
+                            <td><t t-esc="r.appointment"/></td>
+                            <td><t t-esc="r.customer"/></td>
+                            <td><t t-esc="r.date"/></td>
+                            <td><t t-esc="r.total_price"/></td>
+                        </tr>
+                    </t>
+
+                    <t t-if="!state.records.length">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                            No Data Found
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+</templates>

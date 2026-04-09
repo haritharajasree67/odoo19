@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_spa_appointment_form" model="ir.ui.view">
+        <field name="name">spa.appointment.form</field>
+        <field name="model">spa.appointment</field>
+        <field name="arch" type="xml">
+            <form string="Appointment">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Start Service" type="object"
+                            class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_checkout" string="Complete" type="object"
+                            class="btn-success" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('completed','cancelled','no_show')"/>
+                    <button name="action_no_show" string="No Show" type="object"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_create_invoice" string="Invoice" type="object"
+                    />
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+
+                        <button name="action_view_invoices"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o">
+
+                            <field name="invoice_count"
+                                   widget="statinfo"
+                                   string="Invoices"/>
+                        </button>
+
+                        <button name="action_view_deliveries"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-truck">
+
+                            <field name="delivery_count"
+                                   widget="statinfo"
+                                   string="Deliveries"/>
+
+                        </button>
+
+
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"/>
+                            <field name="mobile"/>
+                            <field name="branch_id"/>
+<!--                            <field name="membership_id"/>-->
+                            <field name="package_id"/>
+                        </group>
+                        <group string="Service">
+<!--                            <field name="service_id"/>-->
+<!--                            <field name="duration"/>-->
+                            <!--                            <field name="price"/>-->
+<!--                            <field name="service_charge"/>-->
+<!--                            <field name="consumable_total"/>-->
+                            <field name="total_price"/>
+<!--                            <field name="payment_method" readonly="state == 'completed'"/>-->
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Scheduling">
+                            <field name="start_datetime"/>
+                            <field name="end_datetime"/>
+                            <field name="therapist_id"/>
+                            <field name="room_id"/>
+                        </group>
+<!--                        <group string="Billing">-->
+<!--                            <field name="sale_order_id"/>-->
+<!--                            <field name="invoice_id"/>-->
+<!--                            <field name="commission_id"/>-->
+<!--                            <field name="is_invoiced"/>-->
+<!--                        </group>-->
+                    </group>
+                    <notebook>
+                        <page string="Service">
+                            <field name="service_line_ids">
+                                <list editable="bottom">
+                                    <field name="service_id"/>
+                                    <field name="service_charge"/>
+                                </list>
+                            </field>
+
+                        </page>
+                        <page string="Consumables">
+                            <field name="consumable_line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="total_amount" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes" placeholder="Internal Notes..."/>
+                            <field name="customer_notes" placeholder="Customer Preferences..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+    <!-- Calendar View -->
+    <record id="view_spa_appointment_calendar" model="ir.ui.view">
+        <field name="name">spa.appointment.calendar</field>
+        <field name="model">spa.appointment</field>
+        <field name="arch" type="xml">
+            <calendar string="Appointments" date_start="start_datetime" date_stop="end_datetime"
+                      color="therapist_id" event_limit="5" mode="day"
+                      quick_create="false">
+                <field name="partner_id"/>
+<!--                <field name="service_id"/>-->
+                <field name="therapist_id"/>
+                <field name="room_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_spa_appointment_list" model="ir.ui.view">
+        <field name="name">spa.appointment.list</field>
+        <field name="model">spa.appointment</field>
+        <field name="arch" type="xml">
+            <list string="Appointments" decoration-danger="state=='cancelled'"
+                  decoration-warning="state=='no_show'"
+                  decoration-success="state=='completed'"
+                  decoration-info="state=='confirmed'">
+                <field name="name"/>
+                <field name="partner_id"/>
+<!--                <field name="service_id"/>-->
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="therapist_id"/>
+                <field name="room_id"/>
+                <field name="price"/>
+                <field name="state"/>
+                <field name="is_invoiced" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+<!--    <record id="view_spa_appointment_search" model="ir.ui.view">-->
+<!--        <field name="name">spa.appointment.search</field>-->
+<!--        <field name="model">spa.appointment</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <search>-->
+<!--                <field name="partner_id"/>-->
+<!--                <field name="therapist_id"/>-->
+<!--&lt;!&ndash;                <field name="service_id"/>&ndash;&gt;-->
+<!--                <field name="room_id"/>-->
+<!--                <separator/>-->
+<!--                <filter string="Today" name="today"-->
+<!--                />-->
+<!--                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>-->
+<!--                <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>-->
+<!--                <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>-->
+<!--                <filter string="Cancelled" name="cancelled" domain="[('state','=','cancelled')]"/>-->
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter string="Therapist" name="group_therapist" context="{'group_by': 'therapist_id'}"/>-->
+<!--&lt;!&ndash;                    <filter string="Service" name="group_service" context="{'group_by': 'service_id'}"/>&ndash;&gt;-->
+<!--                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>-->
+<!--                    <filter string="Date" name="group_date" context="{'group_by': 'start_datetime:day'}"/>-->
+<!--                </group>-->
+<!--            </search>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <!-- Action -->
+    <record id="action_spa_appointment" model="ir.actions.act_window">
+        <field name="name">Appointments</field>
+        <field name="res_model">spa.appointment</field>
+        <field name="view_mode">calendar,list,form</field>
+<!--        <field name="search_view_id" ref="view_spa_appointment_search"/>-->
+        <field name="context">{'search_default_today': 1}</field>
+    </record>
+</odoo>

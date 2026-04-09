@@ -1,0 +1,696 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="spa_wellness.BookingPanel" owl="1">
+<div class="spa-bp-root">
+
+  <!-- ── LOADING ─────────────────────────────────────────────── -->
+  <t t-if="state.loading">
+    <div class="spa-bp-loading">
+      <div class="spa-bp-spinner"/>
+      <span>Loading…</span>
+    </div>
+  </t>
+
+  <t t-else="">
+
+    <!-- ════════════════════════════════════════════════════════════
+         MODAL 1 : SLOT PICKER
+         ════════════════════════════════════════════════════════════ -->
+    <t t-if="state.showSlotModal">
+      <div class="spa-modal-overlay" t-on-click="closeSlotModal">
+        <div class="spa-modal" t-on-click.stop="">
+
+          <!-- Header -->
+          <div class="spa-modal-header">
+            <div>
+              <h3 class="spa-modal-title">Choose Slot</h3>
+              <p class="spa-modal-subtitle">Pick a date, time, room and therapist</p>
+            </div>
+            <button class="spa-modal-close" t-on-click="closeSlotModal">✕</button>
+          </div>
+
+          <!-- Date + Time -->
+          <div class="spa-modal-datetime">
+            <div class="spa-modal-field">
+              <label>📅 DATE</label>
+              <input type="date" t-att-value="state.slotDate" t-on-change="onSlotDateChange"/>
+            </div>
+            <div class="spa-modal-field">
+              <label>🕐 START TIME</label>
+              <input type="time" t-att-value="state.slotTime" t-on-change="onSlotTimeChange"/>
+            </div>
+          </div>
+
+          <!-- Preselected therapist notice (from browse tab) -->
+          <t t-if="state.preselectedTherapistId">
+            <div class="spa-modal-preselect-notice">
+              <span class="spa-modal-preselect-icon">👤</span>
+              <span>
+                Therapist pre-selected: <strong><t t-esc="selectedTherapist.name"/></strong>
+              </span>
+              <span class="spa-modal-preselect-hint">You can change it below</span>
+            </div>
+          </t>
+
+          <!-- Scrollable body -->
+          <div class="spa-modal-body">
+
+            <t t-if="state.slotsLoading">
+              <div class="spa-modal-slots-loading">
+                <div class="spa-bp-spinner"/>
+                <span>Checking availability…</span>
+              </div>
+            </t>
+
+            <t t-else="">
+
+              <!-- ROOMS -->
+              <div class="spa-modal-section">
+                <div class="spa-modal-section-header">
+                  <span class="spa-modal-section-title">🛏️ Rooms</span>
+                  <span class="spa-modal-avail-count">
+                    <t t-esc="availableRooms.length"/> available
+                  </span>
+                </div>
+                <div class="spa-slot-grid">
+                  <t t-foreach="availableRooms" t-as="room" t-key="room.id">
+                    <div t-att-class="'spa-slot-card available' + (state.selectedRoomId === room.id ? ' selected' : '')"
+                         t-on-click="() => this.selectRoom(room.id)">
+                      <div class="spa-slot-radio">
+                        <t t-if="state.selectedRoomId === room.id">
+                          <span class="spa-slot-radio-dot"/>
+                        </t>
+                      </div>
+                      <div class="spa-slot-icon">🛏️</div>
+                      <div class="spa-slot-name"><t t-esc="room.name"/></div>
+                      <div class="spa-slot-meta">
+                        <t t-esc="roomTypeLabel(room.room_type)"/> · Cap <t t-esc="room.capacity"/>
+                      </div>
+                      <span class="spa-slot-badge avail">Free</span>
+                    </div>
+                  </t>
+                  <t t-foreach="unavailableRooms" t-as="room" t-key="room.id">
+                    <div class="spa-slot-card unavailable">
+                      <div class="spa-slot-icon">🛏️</div>
+                      <div class="spa-slot-name"><t t-esc="room.name"/></div>
+                      <div class="spa-slot-meta"><t t-esc="roomTypeLabel(room.room_type)"/></div>
+                      <span class="spa-slot-badge busy">
+                        <t t-if="room.status === 'maintenance'">Maintenance</t>
+                        <t t-else="">Occupied</t>
+                      </span>
+                    </div>
+                  </t>
+                  <t t-if="state.allRooms.length === 0">
+                    <div class="spa-slot-empty">No rooms configured.</div>
+                  </t>
+                </div>
+              </div>
+
+              <!-- THERAPISTS -->
+              <div class="spa-modal-section">
+                <div class="spa-modal-section-header">
+                  <span class="spa-modal-section-title">👤 Therapists</span>
+                  <span class="spa-modal-avail-count">
+                    <t t-esc="availableTherapists.length"/> available
+                  </span>
+                </div>
+                <div class="spa-slot-grid">
+                  <t t-foreach="availableTherapists" t-as="th" t-key="th.id">
+                    <div t-att-class="'spa-slot-card available' + (state.selectedTherapistId === th.id ? ' selected' : '')"
+                         t-on-click="() => this.selectTherapist(th.id)">
+                      <div class="spa-slot-radio">
+                        <t t-if="state.selectedTherapistId === th.id">
+                          <span class="spa-slot-radio-dot"/>
+                        </t>
+                      </div>
+                      <div class="spa-slot-icon">👤</div>
+                      <div class="spa-slot-name"><t t-esc="th.name"/></div>
+                      <t t-if="th.specialization">
+                        <div class="spa-slot-meta"><t t-esc="th.specialization"/></div>
+                      </t>
+                      <span class="spa-slot-badge avail">Available</span>
+                    </div>
+                  </t>
+                  <t t-foreach="unavailableTherapists" t-as="th" t-key="th.id">
+                    <div class="spa-slot-card unavailable">
+                      <div class="spa-slot-icon">👤</div>
+                      <div class="spa-slot-name"><t t-esc="th.name"/></div>
+                      <t t-if="th.specialization">
+                        <div class="spa-slot-meta"><t t-esc="th.specialization"/></div>
+                      </t>
+                      <span class="spa-slot-badge busy">Busy</span>
+                    </div>
+                  </t>
+                  <t t-if="state.allTherapists.length === 0">
+                    <div class="spa-slot-empty">No therapists configured.</div>
+                  </t>
+                </div>
+              </div>
+
+            </t><!-- /not slotsLoading -->
+
+          </div><!-- /modal-body -->
+
+          <!-- Sticky footer -->
+          <div class="spa-modal-footer">
+            <div class="spa-modal-selection-summary">
+              <t t-if="state.selectedRoomId">
+                <span class="spa-modal-sel-tag room">🛏️ <t t-esc="selectedRoom.name"/></span>
+              </t>
+              <t t-if="state.selectedTherapistId">
+                <span class="spa-modal-sel-tag therapist">👤 <t t-esc="selectedTherapist.name"/></span>
+              </t>
+              <t t-if="!state.selectedRoomId and !state.selectedTherapistId">
+                <span class="spa-modal-sel-hint">Room and therapist are optional</span>
+              </t>
+            </div>
+            <div class="spa-modal-footer-btns">
+              <button class="spa-modal-cancel-btn" t-on-click="closeSlotModal">Cancel</button>
+              <button class="spa-modal-confirm-btn" t-on-click="confirmSlotSelection">
+                Confirm Selection →
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </t><!-- /slot modal -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         MODAL 2 : BOOKING CONFIRMATION
+         ════════════════════════════════════════════════════════════ -->
+    <t t-if="state.showConfirmModal">
+      <div class="spa-modal-overlay" t-on-click="closeSlotModal">
+        <div class="spa-modal spa-confirm-modal" t-on-click.stop="">
+
+          <div class="spa-modal-header">
+            <div>
+              <h3 class="spa-modal-title">Confirm Booking</h3>
+              <p class="spa-modal-subtitle">Review and create the appointment</p>
+            </div>
+            <button class="spa-modal-close" t-on-click="closeSlotModal">✕</button>
+          </div>
+
+          <div class="spa-confirm-body">
+
+            <div class="spa-confirm-info-grid">
+              <div class="spa-confirm-info-card">
+                <span class="spa-confirm-info-icon">📅</span>
+                <div>
+                  <div class="spa-confirm-info-label">Date &amp; Time</div>
+                  <div class="spa-confirm-info-value"><t t-esc="formatSlotDisplay()"/></div>
+                </div>
+              </div>
+              <div class="spa-confirm-info-card">
+                <span class="spa-confirm-info-icon">👤</span>
+                <div>
+                  <div class="spa-confirm-info-label">Client</div>
+                  <div class="spa-confirm-info-value">
+                    <t t-if="state.partnerName"><t t-esc="state.partnerName"/></t>
+                    <t t-else=""><em style="color:#bbb">Walk-in</em></t>
+                  </div>
+                </div>
+              </div>
+              <t t-if="state.selectedRoomId">
+                <div class="spa-confirm-info-card">
+                  <span class="spa-confirm-info-icon">🛏️</span>
+                  <div>
+                    <div class="spa-confirm-info-label">Room</div>
+                    <div class="spa-confirm-info-value"><t t-esc="selectedRoom.name"/></div>
+                  </div>
+                </div>
+              </t>
+              <t t-if="state.selectedTherapistId">
+                <div class="spa-confirm-info-card">
+                  <span class="spa-confirm-info-icon">💆</span>
+                  <div>
+                    <div class="spa-confirm-info-label">Therapist</div>
+                    <div class="spa-confirm-info-value"><t t-esc="selectedTherapist.name"/></div>
+                  </div>
+                </div>
+              </t>
+            </div>
+
+            <div class="spa-confirm-section-title">Services / Packages</div>
+            <div class="spa-confirm-items">
+              <t t-foreach="state.cart" t-as="item" t-key="item.id + '-' + item.itemType">
+                <div class="spa-confirm-item">
+                  <span t-att-class="'spa-bp-type-tag ' + (item.itemType === 'package' ? 'pkg' : 'svc')">
+                    <t t-if="item.itemType === 'package'">PKG</t>
+                    <t t-else="">SVC</t>
+                  </span>
+                  <span class="spa-confirm-item-name"><t t-esc="item.name"/></span>
+                  <span class="spa-confirm-item-qty">× <t t-esc="item.qty"/></span>
+                  <span class="spa-confirm-item-price">
+                    <t t-esc="formatCurrency(item.price * item.qty)"/>
+                  </span>
+                </div>
+              </t>
+            </div>
+
+            <div class="spa-confirm-total-row">
+              <span>Total</span>
+              <span class="spa-confirm-total-val"><t t-esc="formatCurrency(cartTotal)"/></span>
+            </div>
+
+          </div><!-- /confirm-body -->
+
+          <div class="spa-modal-footer">
+            <button class="spa-modal-cancel-btn" t-on-click="backToSlotModal">← Back</button>
+            <div class="spa-modal-footer-btns">
+              <button class="spa-modal-cancel-btn" t-on-click="closeSlotModal">Cancel</button>
+              <button
+                t-att-class="'spa-modal-create-btn' + (state.saving ? ' disabled' : '')"
+                t-att-disabled="state.saving"
+                t-on-click="createAppointment"
+              >
+                <t t-if="state.saving"><span class="spa-btn-spinner"/> Creating…</t>
+                <t t-else="">✓ Create Appointment</t>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </t><!-- /confirm modal -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         MAIN LAYOUT
+         ════════════════════════════════════════════════════════════ -->
+    <div class="spa-bp-layout">
+
+      <!-- LEFT PANE -->
+      <div class="spa-bp-left">
+        <div class="spa-bp-topbar">
+          <button class="spa-bp-back-btn" t-on-click="close">← Dashboard</button>
+          <h2 class="spa-bp-title">New Booking</h2>
+          <div class="spa-bp-tabs">
+            <button t-att-class="'spa-bp-tab' + (state.viewMode === 'services' ? ' active' : '')"
+                    t-on-click="() => this.setViewMode('services')">💆 Services</button>
+            <button t-att-class="'spa-bp-tab' + (state.viewMode === 'packages' ? ' active' : '')"
+                    t-on-click="() => this.setViewMode('packages')">🎁 Packages</button>
+            <button t-att-class="'spa-bp-tab' + (state.viewMode === 'therapists' ? ' active' : '')"
+                    t-on-click="() => this.setViewMode('therapists')">👤 Therapists</button>
+          </div>
+        </div>
+
+        <!-- ── SERVICES TAB ──────────────────────────────────── -->
+        <t t-if="state.viewMode === 'services'">
+          <div class="spa-bp-search-wrap">
+            <span class="spa-bp-search-icon">🔍</span>
+            <input class="spa-bp-search" type="text"
+                   placeholder="Search services…" t-on-input="onSearchInput"/>
+          </div>
+          <div class="spa-bp-cats">
+            <button t-att-class="'spa-bp-cat' + (state.activeCategory === null ? ' active' : '')"
+                    t-on-click="() => this.selectCategory(null)">All</button>
+            <t t-foreach="state.categories" t-as="cat" t-key="cat.id">
+              <button t-att-class="'spa-bp-cat' + (state.activeCategory === cat.id ? ' active' : '')"
+                      t-on-click="() => this.selectCategory(cat.id)">
+                <t t-esc="cat.name"/>
+              </button>
+            </t>
+          </div>
+          <div class="spa-bp-grid">
+            <t t-if="filteredServices.length === 0">
+              <div class="spa-bp-empty">No services found.</div>
+            </t>
+            <t t-foreach="filteredServices" t-as="svc" t-key="svc.id">
+              <div t-att-class="'spa-bp-card' + (cartQty(svc.id,'service') > 0 ? ' in-cart' : '')"
+                   t-on-click="() => this.addService(svc)">
+                <t t-if="cartQty(svc.id,'service') > 0">
+                  <span class="spa-bp-badge"><t t-esc="cartQty(svc.id,'service')"/></span>
+                </t>
+                <div class="spa-bp-card-icon">💆</div>
+                <div class="spa-bp-card-name"><t t-esc="svc.name"/></div>
+                <t t-if="svc.duration">
+                  <div class="spa-bp-card-dur"><t t-esc="svc.duration"/> min</div>
+                </t>
+                <div class="spa-bp-card-price"><t t-esc="formatCurrency(svc.price)"/></div>
+              </div>
+            </t>
+          </div>
+        </t>
+
+        <!-- ── PACKAGES TAB ──────────────────────────────────── -->
+        <t t-if="state.viewMode === 'packages'">
+          <div class="spa-bp-search-wrap">
+            <span class="spa-bp-search-icon">🔍</span>
+            <input class="spa-bp-search" type="text"
+                   placeholder="Search packages…" t-on-input="onPackageSearchInput"/>
+          </div>
+          <div class="spa-bp-pkg-list">
+            <t t-if="filteredPackages.length === 0">
+              <div class="spa-bp-empty">No packages found.</div>
+            </t>
+            <t t-foreach="filteredPackages" t-as="pkg" t-key="pkg.id">
+              <div t-att-class="'spa-bp-pkg-card' + (cartQty(pkg.id,'package') > 0 ? ' in-cart' : '') + (hasPackageInCart and cartQty(pkg.id,'package') === 0 ? ' pkg-dimmed' : '')">
+                <div class="spa-bp-pkg-info">
+                  <div class="spa-bp-pkg-header">
+                    <span class="spa-bp-pkg-icon">🎁</span>
+                    <span class="spa-bp-pkg-name"><t t-esc="pkg.name"/></span>
+                    <t t-if="cartQty(pkg.id,'package') > 0">
+                      <span class="spa-bp-badge spa-bp-badge-inline"><t t-esc="cartQty(pkg.id,'package')"/></span>
+                    </t>
+                  </div>
+                  <t t-if="pkg.validity_days">
+                    <div class="spa-bp-pkg-validity">Valid for <t t-esc="pkg.validity_days"/> days</div>
+                  </t>
+                  <t t-if="pkg.lines.length > 0">
+                    <div class="spa-bp-pkg-services">
+                      <t t-foreach="pkg.lines" t-as="line" t-key="line_index">
+                        <span class="spa-bp-pkg-service-pill">
+                          <t t-esc="line.serviceName"/>
+                          <t t-if="line.sessions > 1"> × <t t-esc="line.sessions"/></t>
+                        </span>
+                      </t>
+                    </div>
+                  </t>
+                </div>
+                <div class="spa-bp-pkg-right">
+                  <div class="spa-bp-pkg-price"><t t-esc="formatCurrency(pkg.price)"/></div>
+                  <div class="spa-bp-pkg-controls">
+                    <button class="spa-bp-ci-btn" t-on-click="() => this.decreasePackage(pkg)">−</button>
+                    <span class="spa-bp-ci-qty"><t t-esc="cartQty(pkg.id,'package')"/></span>
+                    <button class="spa-bp-ci-btn" t-on-click="() => this.addPackage(pkg)">+</button>
+                  </div>
+                </div>
+              </div>
+            </t>
+          </div>
+        </t>
+
+        <!-- ── THERAPISTS BROWSE TAB ─────────────────────────── -->
+        <t t-if="state.viewMode === 'therapists'">
+
+          <!-- Date/Time availability filter -->
+          <div class="spa-th-browse-filter">
+            <div class="spa-th-browse-filter-title">
+              <span class="spa-th-browse-filter-icon">🗓️</span>
+              Check availability for:
+            </div>
+            <div class="spa-th-browse-filter-inputs">
+              <div class="spa-modal-field">
+                <label>📅 DATE</label>
+                <input type="date" t-att-value="state.browseDate"
+                       t-on-change="onBrowseDateChange"/>
+              </div>
+              <div class="spa-modal-field">
+                <label>🕐 TIME</label>
+                <input type="time" t-att-value="state.browseTime"
+                       t-on-change="onBrowseTimeChange"/>
+              </div>
+            </div>
+            <div class="spa-th-browse-filter-summary">
+              Showing availability at <strong><t t-esc="formatBrowseDateDisplay()"/></strong>
+              <span class="spa-th-avail-counts">
+                · <span class="spa-th-avail-dot avail"/>
+                  <t t-esc="browseAvailableTherapists.length"/> free
+                · <span class="spa-th-avail-dot busy"/>
+                  <t t-esc="browseUnavailableTherapists.length"/> busy
+              </span>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="spa-bp-search-wrap">
+            <span class="spa-bp-search-icon">🔍</span>
+            <input class="spa-bp-search" type="text"
+                   placeholder="Search therapist, specialization…"
+                   t-on-input="onTherapistSearchInput"/>
+          </div>
+
+          <!-- Therapist cards -->
+          <div class="spa-th-browse-list">
+
+            <t t-if="state.allTherapists.length === 0">
+              <div class="spa-bp-empty">No therapists configured.</div>
+            </t>
+
+            <!-- Available -->
+            <t t-if="browseAvailableTherapists.length > 0">
+              <div class="spa-th-browse-group-label avail">
+                ✅ Available at this time
+              </div>
+              <t t-foreach="browseAvailableTherapists" t-as="th" t-key="th.id">
+                <div t-att-class="'spa-th-browse-card avail' + (state.preselectedTherapistId === th.id ? ' is-selected' : '')">
+                  <div class="spa-th-browse-card-left">
+                    <div class="spa-th-browse-avatar">
+                      <t t-esc="th.name[0]"/>
+                    </div>
+                    <div class="spa-th-browse-info">
+                      <div class="spa-th-browse-name"><t t-esc="th.name"/></div>
+                      <t t-if="th.specialization">
+                        <div class="spa-th-browse-spec"><t t-esc="th.specialization"/></div>
+                      </t>
+                      <t t-if="th.serviceNames and th.serviceNames !== '—'">
+                        <div class="spa-th-browse-skills">
+                          <span class="spa-th-skills-label">Services:</span>
+                          <t t-esc="th.serviceNames"/>
+                        </div>
+                      </t>
+                    </div>
+                  </div>
+                  <div class="spa-th-browse-card-right">
+                    <span class="spa-th-status-badge avail">Free</span>
+                    <t t-if="state.preselectedTherapistId === th.id">
+                      <span class="spa-th-selected-badge">✓ Selected</span>
+                    </t>
+                    <t t-else="">
+                      <button class="spa-th-select-btn"
+                              t-on-click="() => this.selectTherapistThenServices(th)">
+                        Select &amp; Choose Services →
+                      </button>
+                    </t>
+                  </div>
+                </div>
+              </t>
+            </t>
+
+            <!-- Busy -->
+            <t t-if="browseUnavailableTherapists.length > 0">
+              <div class="spa-th-browse-group-label busy">
+                🔴 Busy at this time
+              </div>
+              <t t-foreach="browseUnavailableTherapists" t-as="th" t-key="th.id">
+                <div class="spa-th-browse-card busy">
+                  <div class="spa-th-browse-card-left">
+                    <div class="spa-th-browse-avatar busy">
+                      <t t-esc="th.name[0]"/>
+                    </div>
+                    <div class="spa-th-browse-info">
+                      <div class="spa-th-browse-name"><t t-esc="th.name"/></div>
+                      <t t-if="th.specialization">
+                        <div class="spa-th-browse-spec"><t t-esc="th.specialization"/></div>
+                      </t>
+                      <t t-if="th.serviceNames and th.serviceNames !== '—'">
+                        <div class="spa-th-browse-skills">
+                          <span class="spa-th-skills-label">Services:</span>
+                          <t t-esc="th.serviceNames"/>
+                        </div>
+                      </t>
+                    </div>
+                  </div>
+                  <div class="spa-th-browse-card-right">
+                    <span class="spa-th-status-badge busy">Busy</span>
+                    <span class="spa-th-busy-hint">Try a different time</span>
+                  </div>
+                </div>
+              </t>
+            </t>
+
+          </div><!-- /therapist list -->
+
+          <!-- Hint when no therapist selected yet -->
+          <t t-if="!state.preselectedTherapistId">
+            <div class="spa-th-browse-hint">
+              <span class="spa-th-browse-hint-icon">💡</span>
+              Pick a date and time above to see who's free, then click
+              <em>"Select &amp; Choose Services →"</em> on any available therapist.
+              You'll be taken to the Services tab to build your booking.
+            </div>
+          </t>
+
+        </t><!-- /therapists tab -->
+
+      </div><!-- /left -->
+
+      <!-- RIGHT PANE -->
+      <div class="spa-bp-right">
+        <div class="spa-bp-order-header">
+          <span class="spa-bp-order-title">Order Summary</span>
+          <t t-if="!cartIsEmpty">
+            <button class="spa-bp-clear-btn" t-on-click="clearCart">Clear</button>
+          </t>
+        </div>
+
+        <!-- ── Pre-selected therapist banner ── -->
+        <t t-if="state.preselectedTherapistId">
+          <div class="spa-bp-therapist-banner">
+            <div class="spa-bp-therapist-banner-left">
+              <div class="spa-bp-therapist-banner-avatar">
+                <t t-esc="preselectedTherapist.name[0]"/>
+              </div>
+              <div class="spa-bp-therapist-banner-info">
+                <div class="spa-bp-therapist-banner-label">Therapist</div>
+                <div class="spa-bp-therapist-banner-name">
+                  <t t-esc="preselectedTherapist.name"/>
+                </div>
+                <t t-if="preselectedTherapist.specialization">
+                  <div class="spa-bp-therapist-banner-spec">
+                    <t t-esc="preselectedTherapist.specialization"/>
+                  </div>
+                </t>
+              </div>
+            </div>
+            <button class="spa-bp-therapist-banner-clear"
+                    t-on-click="clearPreselectedTherapist"
+                    title="Remove therapist selection">✕</button>
+          </div>
+          <div class="spa-bp-therapist-banner-hint">
+            <t t-if="cartIsEmpty">
+              ← Now pick services from the left to add to this booking
+            </t>
+            <t t-else="">
+              Services selected — click <strong>Book Appointment →</strong> when ready
+            </t>
+          </div>
+        </t>
+
+        <!-- Partner -->
+        <div class="spa-bp-partner-wrap">
+          <label class="spa-bp-partner-label">Client</label>
+
+          <t t-if="state.partnerId">
+            <div class="spa-bp-partner-selected">
+              <span class="spa-bp-partner-chip">👤 <t t-esc="state.partnerName"/></span>
+              <button class="spa-bp-partner-clear" t-on-click="clearPartner">✕</button>
+            </div>
+          </t>
+
+          <t t-if="!state.partnerId">
+            <div class="spa-bp-partner-input-row">
+              <input class="spa-bp-partner-input" type="text"
+                     placeholder="Search or type new name…"
+                     t-att-value="state.partnerSearch"
+                     t-on-input="onPartnerInput"/>
+            </div>
+
+            <t t-if="state.partnerResults.length > 0 and !state.showNewCustomer">
+              <div class="spa-bp-partner-dropdown">
+                <t t-foreach="state.partnerResults" t-as="p" t-key="p.id">
+                  <div class="spa-bp-partner-row" t-on-click="() => this.selectPartner(p)">
+                    <span class="spa-bp-partner-name"><t t-esc="p.name"/></span>
+                    <t t-if="p.phone">
+                      <span class="spa-bp-partner-phone"><t t-esc="p.phone"/></span>
+                    </t>
+                  </div>
+                </t>
+                <div class="spa-bp-partner-row spa-bp-new-cust-row"
+                     t-on-click="openNewCustomerForm">
+                  <span>＋ Create "<t t-esc="state.partnerSearch"/>"</span>
+                </div>
+              </div>
+            </t>
+
+            <t t-if="state.partnerSearch.length >= 2 and state.partnerResults.length === 0 and !state.showNewCustomer">
+              <div class="spa-bp-no-results">
+                No customer found.
+                <button class="spa-bp-create-cust-btn" t-on-click="openNewCustomerForm">
+                  ＋ Create "<t t-esc="state.partnerSearch"/>"
+                </button>
+              </div>
+            </t>
+
+            <t t-if="state.showNewCustomer">
+              <div class="spa-bp-new-cust-form">
+                <div class="spa-bp-new-cust-header">
+                  <span>✦ New Customer</span>
+                  <button class="spa-bp-new-cust-close" t-on-click="closeNewCustomerForm">✕</button>
+                </div>
+                <div class="spa-bp-new-cust-field">
+                  <label>Full Name <span class="spa-req">*</span></label>
+                  <input type="text" placeholder="Full name"
+                         t-att-value="state.newCustName" t-on-input="onNewCustName"/>
+                </div>
+                <div class="spa-bp-new-cust-field">
+                  <label>Phone</label>
+                  <input type="tel" placeholder="+973 3300 0000"
+                         t-att-value="state.newCustPhone" t-on-input="onNewCustPhone"/>
+                </div>
+                <div class="spa-bp-new-cust-field">
+                  <label>Email</label>
+                  <input type="email" placeholder="email@example.com"
+                         t-att-value="state.newCustEmail" t-on-input="onNewCustEmail"/>
+                </div>
+                <t t-if="state.newCustError">
+                  <div class="spa-bp-new-cust-error"><t t-esc="state.newCustError"/></div>
+                </t>
+                <button
+                  t-att-class="'spa-bp-new-cust-save' + (state.newCustSaving ? ' disabled' : '')"
+                  t-att-disabled="state.newCustSaving"
+                  t-on-click="saveNewCustomer">
+                  <t t-if="state.newCustSaving"><span class="spa-btn-spinner"/> Saving…</t>
+                  <t t-else="">✓ Save Customer</t>
+                </button>
+              </div>
+            </t>
+          </t>
+        </div>
+
+        <!-- Cart -->
+        <div class="spa-bp-cart-items">
+          <t t-if="cartIsEmpty">
+            <div class="spa-bp-cart-empty">
+              <div class="spa-bp-cart-empty-icon">🛒</div>
+              <p>Select services or packages from the left.</p>
+            </div>
+          </t>
+          <t t-foreach="state.cart" t-as="item" t-key="item.id + '-' + item.itemType">
+            <div class="spa-bp-cart-item">
+              <span t-att-class="'spa-bp-type-tag ' + (item.itemType === 'package' ? 'pkg' : 'svc')">
+                <t t-if="item.itemType === 'package'">PKG</t><t t-else="">SVC</t>
+              </span>
+              <div class="spa-bp-ci-info">
+                <span class="spa-bp-ci-name"><t t-esc="item.name"/></span>
+                <span class="spa-bp-ci-unit"><t t-esc="formatCurrency(item.price)"/> each</span>
+              </div>
+              <div class="spa-bp-ci-controls">
+                <button class="spa-bp-ci-btn"
+                        t-on-click="() => this._cartDecrease(item.id, item.itemType)">−</button>
+                <span class="spa-bp-ci-qty"><t t-esc="item.qty"/></span>
+                <button class="spa-bp-ci-btn"
+                        t-on-click="() => this._cartAdd(item.id, item.name, item.price, item.itemType)">+</button>
+              </div>
+              <div class="spa-bp-ci-subtotal"><t t-esc="formatCurrency(item.price * item.qty)"/></div>
+              <button class="spa-bp-ci-remove" t-on-click="() => this.removeCartItem(item)">✕</button>
+            </div>
+          </t>
+        </div>
+
+        <!-- Footer -->
+        <div class="spa-bp-footer">
+          <div class="spa-bp-total-row">
+            <span class="spa-bp-total-label">Total</span>
+            <span class="spa-bp-total-value"><t t-esc="formatCurrency(cartTotal)"/></span>
+          </div>
+          <button
+            t-att-class="'spa-bp-checkout-btn' + (cartIsEmpty || state.saving ? ' disabled' : '')"
+            t-att-disabled="cartIsEmpty || state.saving"
+            t-on-click="openSlotModal"
+          >
+            <t t-if="state.saving">Saving…</t>
+            <t t-else="">Book Appointment →</t>
+          </button>
+        </div>
+      </div><!-- /right -->
+
+    </div><!-- /layout -->
+
+  </t><!-- /not loading -->
+
+</div>
+</t>
+
+</templates>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_spa_service_category_tree" model="ir.ui.view">
+        <field name="name">spa.service.category.tree</field>
+        <field name="model">spa.service.category</field>
+        <field name="arch" type="xml">
+            <list string="Spa Service Categories">
+                <field name="name"/>
+                <field name="color"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spa_service_category_form" model="ir.ui.view">
+        <field name="name">spa.service.category.form</field>
+        <field name="model">spa.service.category</field>
+        <field name="arch" type="xml">
+            <form string="Spa Service Category">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="color" widget="color_picker"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_spa_service_category" model="ir.actions.act_window">
+        <field name="name">Spa Service Categories</field>
+        <field name="res_model">spa.service.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

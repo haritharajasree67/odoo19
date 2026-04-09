@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root Menu -->
+    <menuitem id="menu_spa_root" name="Spa &amp; Wellness" sequence="50"
+              web_icon="spa_wellness,static/description/icon.png"/>
+
+    <record id="action_spa_dashboard" model="ir.actions.client">
+        <field name="name">Spa Dashboard</field>
+        <field name="tag">spa_wellness.dashboard</field>
+    </record>
+
+     <record id="action_spa_commission_rep" model="ir.actions.client">
+        <field name="name">Commission</field>
+        <field name="tag">spa_wellness.commission</field>
+    </record>
+
+    <record id="action_spa_slot_checker" model="ir.actions.client">
+        <field name="name">Free Slot Checker</field>
+        <field name="tag">spa_wellness.slot_checker</field>
+    </record>
+    <record id="action_spa_membership_plans" model="ir.actions.client">
+        <field name="name">Membership Plans</field>
+        <field name="tag">spa_wellness.membership_plans</field>
+    </record>
+
+    <record id="action_spa_packages" model="ir.actions.client">
+        <field name="name">Spa Packages</field>
+        <field name="tag">spa_wellness.spa_packages</field>
+    </record>
+    <record id="action_spa_appointment_rep" model="ir.actions.client">
+        <field name="name">SpaAppointment</field>
+        <field name="tag">spa_wellness.spa_appointment</field>
+    </record>
+
+    <record id="action_spa_rooms" model="ir.actions.client">
+        <field name="name">Spa Rooms</field>
+        <field name="tag">spa_wellness.spa_rooms</field>
+    </record>
+
+    <record id="action_spa_therapists" model="ir.actions.client">
+        <field name="name">SpaTherapists</field>
+        <field name="tag">spa_wellness.spa_therapists</field>
+    </record>
+
+    <record id="action_spa_services_dashboard" model="ir.actions.client">
+        <field name="name">Spa Services</field>
+        <field name="tag">spa_wellness.spa_services</field>
+    </record>
+
+      <record id="action_spa_appointment_cards" model="ir.actions.client">
+        <field name="name">Spa Appointments</field>
+        <field name="tag">spa_appointment_cards</field>
+    </record>
+
+     <record id="action_spa_booking_panel" model="ir.actions.client">
+        <field name="name">SpaBookingPanel</field>
+        <field name="tag">booking_panel</field>
+    </record>
+
+    <menuitem
+            id="menu_spa_dashboard"
+            name="Dashboard"
+            parent="menu_spa_root"
+            action="action_spa_dashboard"
+            sequence="1"/>
+
+    <!-- Appointments -->
+    <menuitem id="menu_spa_appointments" name="Appointments"
+              parent="menu_spa_root" sequence="10"/>
+    <menuitem id="menu_spa_appointment_list" name="Appointments"
+              parent="menu_spa_appointments" action="action_spa_appointment" sequence="10"/>
+
+
+<!--    &lt;!&ndash; Commission &ndash;&gt;-->
+<!--    <menuitem id="menu_spa_commission" name="Commission"-->
+<!--              parent="menu_spa_root" sequence="20"-->
+<!--            groups="spa_wellness.group_spa_manager,spa_wellness.group_spa_therapist"/>-->
+<!--    <menuitem id="menu_spa_therapist_commision" name="Commission"-->
+<!--              parent="menu_spa_commission" action="action_spa_therapist_commission" sequence="5"/>-->
+
+
+    <!-- Membership -->
+<!--    <menuitem id="menu_spa_membership" name="Membership"-->
+<!--              parent="menu_spa_root" sequence="15"-->
+<!--              groups="spa_wellness.group_spa_manager"/>-->
+<!--    <menuitem id="menu_spa_membership_plan" name="Membership Plan"-->
+<!--              parent="menu_spa_membership" action="action_spa_membership_plan" sequence="5"/>-->
+<!--    <menuitem id="menu_spa_customer_membership" name="Membership"-->
+<!--              parent="menu_spa_membership" action="action_spa_membership" sequence="15"/>-->
+
+
+    <!-- Packages -->
+    <menuitem id="menu_spa_packages" name="Packages"
+              parent="menu_spa_root" sequence="17"
+              groups="spa_wellness.group_spa_manager"/>
+    <menuitem id="menu_spa_package_templates" name="Package"
+              parent="menu_spa_packages" sequence="20"
+              action="action_spa_package_template"/>
+
+
+    <!-- Report -->
+    <menuitem id="menu_spa_report" name="Report"
+              parent="menu_spa_root" sequence="20"
+              groups="spa_wellness.group_spa_manager"/>
+    <menuitem id="menu_appointment_report" name="Appointment"
+              parent="menu_spa_report" action="action_spa_appointment_rep" sequence="5"/>
+<!--    <menuitem id="menu_commission_report" name="Commission"-->
+<!--              parent="menu_spa_report" action="action_spa_commission_rep" sequence="15"/>-->
+
+
+
+    <!-- Configuration -->
+    <menuitem id="menu_spa_config" name="Configuration"
+              parent="menu_spa_root" sequence="90"
+              groups="spa_wellness.group_spa_manager"/>
+<!--    <menuitem id="menu_spa_services_categ" name="Services Category"-->
+<!--              parent="menu_spa_config" action="action_spa_service_category" sequence="5"/>-->
+    <menuitem id="menu_spa_service" name="Services"
+              parent="menu_spa_config" action="action_spa_service" sequence="15"/>
+    <menuitem id="menu_spa_rooms" name="Rooms"
+              parent="menu_spa_config" action="action_spa_room" sequence="20"/>
+    <menuitem id="menu_spa_therapists" name="Therapists"
+              parent="menu_spa_config" action="action_spa_therapist" sequence="30"/>
+
+</odoo>

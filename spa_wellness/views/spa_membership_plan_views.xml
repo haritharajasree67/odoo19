@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="view_spa_membership_plan_tree" model="ir.ui.view">
+        <field name="name">spa.membership.plan.tree</field>
+        <field name="model">spa.membership.plan</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="duration"/>
+                <field name="duration_type"/>
+                <field name="consultation_count"/>
+                <field name="price"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spa_membership_plan_form" model="ir.ui.view">
+        <field name="name">spa.membership.plan.form</field>
+        <field name="model">spa.membership.plan</field>
+        <field name="arch" type="xml">
+
+            <form string="Membership Plan">
+
+                <sheet>
+
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="price"/>
+                            <field name="consultation_count"/>
+                            <field name="active"/>
+                        </group>
+
+                        <group>
+                            <field name="duration"/>
+                            <field name="duration_type"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+
+                        <!-- SERVICES TAB -->
+                        <page string="Services">
+
+                            <field name="service_line_ids">
+                                <list editable="bottom">
+                                    <field name="service_id"/>
+                                    <field name="allowed_sessions"/>
+                                    <field name="discount_percentage"/>
+                                </list>
+                            </field>
+
+                        </page>
+
+                        <!-- PRODUCTS TAB -->
+                        <page string="Product Discounts">
+
+                            <field name="product_line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="discount_percentage"/>
+                                </list>
+                            </field>
+
+                        </page>
+
+                        <!-- NOTES -->
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+    <record id="action_spa_membership_plan" model="ir.actions.act_window">
+        <field name="name">Membership Plans</field>
+        <field name="res_model">spa.membership.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+</odoo>

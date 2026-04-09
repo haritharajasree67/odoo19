@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="action_inventory_dashboard" model="ir.actions.client">
+        <field name="name">Inventory Forecast Dashboard</field>
+        <field name="tag">inventory_forecast_dashboard</field>
+    </record>
+
+    <menuitem
+        id="menu_inventory_forecast"
+        name="StockPulse"
+        sequence="10" web_icon="smart_inventory_forecast,static/description/icon.png"/>
+
+        <menuitem
+        id="menu_inventory_forecast_product"
+        name="Forecast Alerts"
+        parent="menu_inventory_forecast"
+        action="action_inventory_dashboard"
+        sequence="10"/>
+
+</odoo>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="osm_widget.OsmMap">
+        <div class="o_osm_widget">
+
+            <!-- Search bar + clear (edit mode only) -->
+            <t t-if="!props.readonly">
+                <div class="o_osm_toolbar">
+                    <div class="o_osm_search_wrap">
+                        <span class="o_osm_search_icon">🔍</span>
+                        <input
+                            class="o_osm_search"
+                            type="text"
+                            placeholder="Search address or place…"
+                            t-on-keydown="onSearchKeydown"
+                        />
+                    </div>
+                    <t t-if="hasLocation">
+                        <button class="o_osm_btn_clear" t-on-click="onClear">✕ Clear</button>
+                    </t>
+                </div>
+                <p class="o_osm_hint">
+                    <t t-if="hasLocation">
+                        📍 <strong t-esc="lat"/> , <strong t-esc="lng"/> — drag the pin or click to move
+                    </t>
+                    <t t-else="">
+                        Click on the map or search above to set the company location
+                    </t>
+                </p>
+            </t>
+
+            <!-- Map -->
+            <div class="o_osm_map" t-ref="map">
+                <t t-if="!hasLocation and props.readonly">
+                    <div class="o_osm_empty">📍 No location set</div>
+                </t>
+            </div>
+
+        </div>
+    </t>
+</templates>

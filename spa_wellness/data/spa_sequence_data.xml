@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_spa_appointment" model="ir.sequence">
+        <field name="name">Spa Appointment</field>
+        <field name="code">spa.appointment</field>
+        <field name="prefix">APT/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+
+    <record id="seq_spa_commission" model="ir.sequence">
+        <field name="name">Spa Commission</field>
+        <field name="code">spa.commission</field>
+        <field name="prefix">COM/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+
+    <record id="seq_spa_membership" model="ir.sequence">
+        <field name="name">Spa Membership</field>
+        <field name="code">spa.membership</field>
+        <field name="prefix">MEM/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+
+    <record id="seq_spa_package" model="ir.sequence">
+        <field name="name">Spa Package</field>
+        <field name="code">spa.package</field>
+        <field name="prefix">PKG/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>
